@@ -4,7 +4,7 @@ from io import BytesIO
 from PIL import Image
 
 class VGDataset(object):
-    def __init__(self, img_dir, vg_ann, class_file):
+    def __init__(self, img_dir, vg_ann, class_file, transforms=None):
         self.img_dir = img_dir
 
         self.cls_dict = {}
