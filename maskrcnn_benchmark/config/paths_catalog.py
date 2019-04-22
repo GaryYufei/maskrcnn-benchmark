@@ -146,7 +146,7 @@ class DatasetCatalog(object):
             args = dict(
                 img_dir=os.path.join(data_dir, attrs["img_dir"]),
                 vg_ann=os.path.join(data_dir, attrs["vg_ann"]),
-                class_file=attrs["class_file"]
+                class_file=os.path.join(data_dir, attrs["class_file"]),
             )
             return dict(
                 factory="VGDataset",
