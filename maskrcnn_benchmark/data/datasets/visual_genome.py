@@ -25,6 +25,17 @@ class VGDataset(object):
         # load the image as a PIL Image
         image_path = os.path.join(self.img_dir, image_info['image_name'])
         image = Image.open(image_path).convert("RGB")
+
+        boxlist = self.get_groundtruth(idx)
+        
+        if self.transforms is not None:
+            image, boxlist = self.transforms(image, boxlist)
+        # return the image, the boxlist and the idx in your dataset
+        return image, boxlist, idx
+
+    def get_groundtruth(self, idx):
+        image_info = self.img_obj_list[idx]
+
         # load the bounding boxes as a list of list of boxes
         # in this case, for illustrative purposes, we use
         # x1, y1, x2, y2 order.
@@ -36,13 +47,12 @@ class VGDataset(object):
         labels = torch.tensor(labels)
 
         # create a BoxList from the boxes
-        boxlist = BoxList(boxes, image.size, mode="xyxy")
+        boxlist = BoxList(boxes, (image_info['width'], image_info['height']), mode="xyxy")
         # add the labels to the boxlist
         boxlist.add_field("labels", labels)
-        if self.transforms is not None:
-            image, boxlist = self.transforms(image, boxlist)
-        # return the image, the boxlist and the idx in your dataset
-        return image, boxlist, idx
+
+        return boxlist
+
 
     def get_img_info(self, idx):
         # get img_height and img_width. This is used if
