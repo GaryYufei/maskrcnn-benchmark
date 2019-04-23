@@ -10,7 +10,7 @@ class VGDataset(object):
         with open(class_file) as cls_file:
             for line in cls_file:
                 line = line.strip()
-                self.cls_dict[line] = len(self.cls_dict)
+                self.cls_dict[line] = 1 + len(self.cls_dict)
 
         with open(vg_ann) as ann:
             self.img_obj_list = json.load(ann)
