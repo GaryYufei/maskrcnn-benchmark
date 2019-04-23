@@ -42,6 +42,7 @@ python setup.py build_ext install
 cd $INSTALL_DIR
 git clone https://github.com/NVIDIA/apex.git
 cd apex
+CUDAHOSTCXX=/usr/bin/gcc-5 python setup.py build develop # works on gcc 5.4.0 Ubuntu
 python setup.py install --cuda_ext --cpp_ext
 
 # install PyTorch Detection

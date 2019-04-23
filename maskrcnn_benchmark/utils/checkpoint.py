@@ -28,6 +28,7 @@ class Checkpointer(object):
         if logger is None:
             logger = logging.getLogger(__name__)
         self.logger = logger
+        self.KEEP_CHECK_POINT = 3
 
     def save(self, name, **kwargs):
         if not self.save_dir:
@@ -78,8 +79,8 @@ class Checkpointer(object):
         save_file = os.path.join(self.save_dir, "last_checkpoint")
         try:
             with open(save_file, "r") as f:
-                last_saved = f.read()
-                last_saved = last_saved.strip()
+                for line in f:
+                    last_saved = line.strip()
         except IOError:
             # if file doesn't exist, maybe because it has just been
             # deleted by a separate process
@@ -88,8 +89,19 @@ class Checkpointer(object):
 
     def tag_last_checkpoint(self, last_filename):
         save_file = os.path.join(self.save_dir, "last_checkpoint")
+        
+        file_list = []
+        if os.path.isfile(save_file):
+            with open(save_file, "r") as f:
+                for name in f:
+                    file_list.append(name.strip())
+        if len(file_list) == self.KEEP_CHECK_POINT:
+            os.remove(file_list.pop(0))
+
+        file_list.append(last_filename)
         with open(save_file, "w") as f:
-            f.write(last_filename)
+            for filename in file_list:
+                f.write(filename + '\n')
 
     def _load_file(self, f):
         return torch.load(f, map_location=torch.device("cpu"))
