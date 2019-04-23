@@ -7,9 +7,11 @@ class VGDataset(object):
         self.img_dir = img_dir
 
         self.cls_dict = {}
+        self.cls_list = [None]
         with open(class_file) as cls_file:
             for line in cls_file:
                 line = line.strip()
+                self.cls_list.append(line)
                 self.cls_dict[line] = 1 + len(self.cls_dict)
 
         with open(vg_ann) as ann:
@@ -19,6 +21,9 @@ class VGDataset(object):
 
     def __len__(self):
         return len(self.img_obj_list)
+
+    def map_class_id_to_class_name(self, class_id):
+        return self.cls_list[class_id]
 
     def __getitem__(self, idx):
         image_info = self.img_obj_list[idx]
@@ -39,17 +44,20 @@ class VGDataset(object):
         # load the bounding boxes as a list of list of boxes
         # in this case, for illustrative purposes, we use
         # x1, y1, x2, y2 order.
-        boxes, labels = [], []
+        boxes, labels, difficult = [], [], []
         for object_ in image_info['objects']:
-            boxes.append([int(object_['x']), int(object_['y']), int(object_['x']) + int(object_['w']) - 1,int(object_['y']) + int(object_['h']) - 1])
+            boxes.append([int(object_['x1']), int(object_['y1']), int(object_['x2']), int(object_['y2'])])
             labels.append(self.cls_dict[object_['label']])
+            difficult.append(0)
         # and labels
         labels = torch.tensor(labels)
+        difficult = torch.tensor(difficult)
 
         # create a BoxList from the boxes
         boxlist = BoxList(boxes, (image_info['width'], image_info['height']), mode="xyxy")
         # add the labels to the boxlist
         boxlist.add_field("labels", labels)
+        boxlist.add_field("difficult", difficult)
 
         return boxlist
 

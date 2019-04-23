@@ -20,7 +20,7 @@ def evaluate(dataset, predictions, output_folder, **kwargs):
     )
     if isinstance(dataset, datasets.COCODataset):
         return coco_evaluation(**args)
-    elif isinstance(dataset, datasets.PascalVOCDataset) or isinstance(dataset, datasets.PascalVOCDataset.VGDataset):
+    elif isinstance(dataset, datasets.PascalVOCDataset) or isinstance(dataset, datasets.VGDataset):
         return voc_evaluation(**args)
     else:
         dataset_name = dataset.__class__.__name__
