@@ -3,7 +3,7 @@ import json, os, torch
 from PIL import Image
 
 class VGDataset(object):
-    def __init__(self, img_dir, vg_ann, class_file, transforms=None):
+    def __init__(self, img_dir, vg_ann, class_file, attr_file, transforms=None):
         self.img_dir = img_dir
 
         self.cls_dict = {}
@@ -13,6 +13,12 @@ class VGDataset(object):
                 line = line.strip()
                 self.cls_list.append(line)
                 self.cls_dict[line] = 1 + len(self.cls_dict)
+
+        self.attr_dict = {}
+        with open(attr_file) as attrs_file:
+            for line in attrs_file:
+                line = line.strip()
+                self.attr_dict[line] = len(self.attr_dict)
 
         with open(vg_ann) as ann:
             self.img_obj_list = json.load(ann)
@@ -48,7 +54,7 @@ class VGDataset(object):
         for object_ in image_info['objects']:
             boxes.append([int(object_['x1']), int(object_['y1']), int(object_['x2']), int(object_['y2'])])
             labels.append(self.cls_dict[object_['label']])
-            attrs.append(0)
+            attrs.append(self.attr_dict[object_['attr'][0]])
             difficult.append(0)
         # and labels
         labels = torch.tensor(labels)

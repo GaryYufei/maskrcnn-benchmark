@@ -45,6 +45,7 @@ def do_train(
     device,
     checkpoint_period,
     arguments,
+    run_test_func,
 ):
     logger = logging.getLogger("maskrcnn_benchmark.trainer")
     logger.info("Start training")
@@ -109,6 +110,10 @@ def do_train(
             checkpointer.save("model_{:07d}".format(iteration), **arguments)
         if iteration == max_iter:
             checkpointer.save("model_final", **arguments)
+
+        if iteration % 100 == 0 or iteration == max_iter:
+            run_test_func()
+            model.train()
 
     total_training_time = time.time() - start_training_time
     total_time_str = str(datetime.timedelta(seconds=total_training_time))

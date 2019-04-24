@@ -33,7 +33,7 @@ except ImportError:
     raise ImportError('Use APEX for multi-precision via apex.amp')
 
 
-def train(cfg, local_rank, distributed):
+def train(cfg, local_rank, distributed, run_test_func):
     model = build_detection_model(cfg)
     device = torch.device(cfg.MODEL.DEVICE)
     model.to(device)
@@ -83,6 +83,7 @@ def train(cfg, local_rank, distributed):
         device,
         checkpoint_period,
         arguments,
+        run_test_func,
     )
 
     return model
@@ -131,12 +132,6 @@ def main():
     )
     parser.add_argument("--local_rank", type=int, default=0)
     parser.add_argument(
-        "--skip-test",
-        dest="skip_test",
-        help="Do not test the final model",
-        action="store_true",
-    )
-    parser.add_argument(
         "opts",
         help="Modify config options using the command-line",
         default=None,
@@ -176,11 +171,9 @@ def main():
         logger.info(config_str)
     logger.info("Running with config:\n{}".format(cfg))
 
-    model = train(cfg, args.local_rank, args.distributed)
+    run_test_func = lambda: run_test(cfg, model, args.distributed)
 
-    if not args.skip_test:
-        run_test(cfg, model, args.distributed)
-
-
+    model = train(cfg, args.local_rank, args.distributed, run_test_func)
+        
 if __name__ == "__main__":
     main()

@@ -10,12 +10,14 @@ class DatasetCatalog(object):
         "vg_train": {
             "img_dir": "vg/img",
             "vg_ann": "vg/ann/train.json",
-            "class_file": "vg/class_labels.txt"
+            "class_file": "vg/class_labels.txt",
+            "attr_file": "vg/attr_labels.txt"
         },
         "vg_dev": {
             "img_dir": "vg/img",
             "vg_ann": "vg/ann/dev.json",
-            "class_file": "vg/class_labels.txt"
+            "class_file": "vg/class_labels.txt",
+            "attr_file": "vg/attr_labels.txt"
         },
         "coco_2017_train": {
             "img_dir": "coco/train2017",
@@ -147,6 +149,7 @@ class DatasetCatalog(object):
                 img_dir=os.path.join(data_dir, attrs["img_dir"]),
                 vg_ann=os.path.join(data_dir, attrs["vg_ann"]),
                 class_file=os.path.join(data_dir, attrs["class_file"]),
+                attr_file=os.path.join(data_dir, attrs["attr_file"]),
             )
             return dict(
                 factory="VGDataset",
