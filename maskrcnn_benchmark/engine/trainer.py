@@ -110,8 +110,7 @@ def do_train(
             checkpointer.save("model_{:07d}".format(iteration), **arguments)
         if iteration == max_iter:
             checkpointer.save("model_final", **arguments)
-
-        if iteration % 100 == 0 or iteration == max_iter:
+        if iteration % 20000 == 0 or iteration == max_iter:
             run_test_func(model)
             model.train()
 
