@@ -171,7 +171,7 @@ def main():
         logger.info(config_str)
     logger.info("Running with config:\n{}".format(cfg))
 
-    run_test_func = lambda: run_test(cfg, model, args.distributed)
+    run_test_func = lambda d: run_test(cfg, d, args.distributed)
 
     model = train(cfg, args.local_rank, args.distributed, run_test_func)
         

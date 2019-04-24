@@ -112,7 +112,7 @@ def do_train(
             checkpointer.save("model_final", **arguments)
 
         if iteration % 100 == 0 or iteration == max_iter:
-            run_test_func()
+            run_test_func(model)
             model.train()
 
     total_training_time = time.time() - start_training_time
