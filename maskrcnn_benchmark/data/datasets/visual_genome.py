@@ -44,20 +44,23 @@ class VGDataset(object):
         # load the bounding boxes as a list of list of boxes
         # in this case, for illustrative purposes, we use
         # x1, y1, x2, y2 order.
-        boxes, labels, difficult = [], [], []
+        boxes, labels, difficult, attrs = [], [], [], []
         for object_ in image_info['objects']:
             boxes.append([int(object_['x1']), int(object_['y1']), int(object_['x2']), int(object_['y2'])])
             labels.append(self.cls_dict[object_['label']])
+            attrs.append(0)
             difficult.append(0)
         # and labels
         labels = torch.tensor(labels)
         difficult = torch.tensor(difficult)
+        attrs = torch.tensor(attrs)
 
         # create a BoxList from the boxes
         boxlist = BoxList(boxes, (image_info['width'], image_info['height']), mode="xyxy")
         # add the labels to the boxlist
         boxlist.add_field("labels", labels)
         boxlist.add_field("difficult", difficult)
+        boxlist.add_field("attrs", attrs)
 
         return boxlist
 

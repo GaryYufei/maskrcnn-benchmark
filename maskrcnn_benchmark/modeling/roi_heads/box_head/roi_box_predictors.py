@@ -56,6 +56,24 @@ class FPNPredictor(nn.Module):
 
         return scores, bbox_deltas
 
+@registry.ROI_BOX_PREDICTOR.register("FPNAttrPredictor")
+class FPNAttrPredictor(FPNPredictor):
+    def __init__(self, cfg, in_channels):
+        super(FPNAttrPredictor, self).__init__(cfg, in_channels)
+        num_classes = cfg.MODEL.ROI_BOX_HEAD.ATTR_NUM_CLASSES
+        representation_size = in_channels
+
+        self.attr_score = nn.Linear(representation_size, num_classes)
+        nn.init.normal_(self.attr_score.weight, std=0.01)
+        nn.init.constant_(self.attr_score.bias, 0)
+            
+
+    def forward(self, x):
+        scores, bbox_deltas = super(FPNAttrPredictor, self).forward(x)
+        attr_scores = self.attr_score(x)
+
+        return attr_scores, scores, bbox_deltas
+
 
 def make_roi_box_predictor(cfg, in_channels):
     func = registry.ROI_BOX_PREDICTOR[cfg.MODEL.ROI_BOX_HEAD.PREDICTOR]

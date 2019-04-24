@@ -7,7 +7,9 @@ from .roi_box_predictors import make_roi_box_predictor
 from .inference import make_roi_box_post_processor
 from .loss import make_roi_box_loss_evaluator
 
+from maskrcnn_benchmark.modeling import registry
 
+@registry.ROI_BOX_HEADS.register("ROIBoxHead")
 class ROIBoxHead(torch.nn.Module):
     """
     Generic Box Head class.
@@ -61,6 +63,35 @@ class ROIBoxHead(torch.nn.Module):
             dict(loss_classifier=loss_classifier, loss_box_reg=loss_box_reg),
         )
 
+@registry.ROI_BOX_HEADS.register("ROIBoxAttrHead")
+class ROIBoxAttrHead(ROIBoxHead):
+
+    def forward(self, features, proposals, targets=None):
+        if self.training:
+            # Faster R-CNN subsamples during training the proposals with a fixed
+            # positive / negative ratio
+            with torch.no_grad():
+                proposals = self.loss_evaluator.subsample(proposals, targets)
+
+        # extract features that will be fed to the final classifier. The
+        # feature_extractor generally corresponds to the pooler + heads
+        x = self.feature_extractor(features, proposals)
+        # final classifier that converts the features into predictions
+        attr_logits, class_logits, box_regression = self.predictor(x)
+
+        if not self.training:
+            result = self.post_processor((class_logits, box_regression), proposals)
+            return x, result, {}
+
+        loss_attr, loss_classifier, loss_box_reg = self.loss_evaluator(
+            [attr_logits], [class_logits], [box_regression]
+        )
+        return (
+            x,
+            proposals,
+            dict(loss_classifier=loss_classifier, loss_box_reg=loss_box_reg, loss_attr=loss_attr),
+        )
+
 
 def build_roi_box_head(cfg, in_channels):
     """
@@ -68,4 +99,5 @@ def build_roi_box_head(cfg, in_channels):
     By default, uses ROIBoxHead, but if it turns out not to be enough, just register a new class
     and make it a parameter in the config
     """
-    return ROIBoxHead(cfg, in_channels)
+    func = registry.ROI_BOX_HEADS[cfg.MODEL.ROI_BOX_HEAD.HEAD]
+    return func(cfg, in_channels)
