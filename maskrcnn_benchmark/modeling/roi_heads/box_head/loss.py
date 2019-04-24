@@ -208,7 +208,7 @@ class FastRCNNLossWithAttrComputation(FastRCNNLossComputation):
             # Label ignore proposals (between low and high thresholds)
             ignore_inds = matched_idxs == Matcher.BETWEEN_THRESHOLDS
             labels_per_image[ignore_inds] = -1  # -1 is ignored by sampler
-            attrs_per_image[ignore_inds] = 0
+            attrs_per_image[ignore_inds] = -1
 
             # compute regression targets
             regression_targets_per_image = self.box_coder.encode(
@@ -266,7 +266,7 @@ class FastRCNNLossWithAttrComputation(FastRCNNLossComputation):
         
         attr_logits = cat(attr_logits, dim=0) 
         attrs = cat([proposal.get_field("attrs") for proposal in self._proposals], dim=0)
-        attrs_loss = F.cross_entropy(attr_logits, attrs, ignore_index=0)
+        attrs_loss = F.cross_entropy(attr_logits, attrs, ignore_index=-1)
 
         return attrs_loss, classification_loss, box_loss
 
