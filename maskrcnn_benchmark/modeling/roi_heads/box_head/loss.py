@@ -262,7 +262,8 @@ class FastRCNNLossWithAttrComputation(FastRCNNLossComputation):
     def __call__(self, attr_logits, class_logits, box_regression):
         classification_loss, box_loss = \
             super(FastRCNNLossWithAttrComputation, self).__call__(class_logits, box_regression)
-
+        
+        attr_logits = cat(attr_logits, dim=0) 
         attrs = cat([proposal.get_field("attrs") for proposal in self._proposals], dim=0)
         attrs_loss = F.cross_entropy(attr_logits, attrs, ignore_index=0)
 
