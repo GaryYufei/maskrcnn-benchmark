@@ -55,6 +55,7 @@ def do_train(
     model.train()
     start_training_time = time.time()
     end = time.time()
+    best_map = 0
     for iteration, (images, targets, _) in enumerate(data_loader, start_iter):
         data_time = time.time() - end
         iteration = iteration + 1
@@ -88,7 +89,7 @@ def do_train(
         eta_seconds = meters.time.global_avg * (max_iter - iteration)
         eta_string = str(datetime.timedelta(seconds=int(eta_seconds)))
 
-        if iteration % 20 == 0 or iteration == max_iter:
+        if iteration % 50 == 0 or iteration == max_iter:
             logger.info(
                 meters.delimiter.join(
                     [
@@ -106,13 +107,14 @@ def do_train(
                     memory=torch.cuda.max_memory_allocated() / 1024.0 / 1024.0,
                 )
             )
-        if iteration % checkpoint_period == 0:
-            checkpointer.save("model_{:07d}".format(iteration), **arguments)
-        if iteration == max_iter:
-            checkpointer.save("model_final", **arguments)
-        if iteration % 20000 == 0 or iteration == max_iter:
-            run_test_func(model)
+
+        if iteration % checkpoint_period == 0 or iteration == max_iter:
+            result = run_test_func(model)
             model.train()
+            if float(result['map']) > best_map:
+                best_map = float(result['map'])
+                checkpointer.save("model_{:07d}_%.4f".format(iteration, best_map), **arguments)
+
 
     total_training_time = time.time() - start_training_time
     total_time_str = str(datetime.timedelta(seconds=total_training_time))
