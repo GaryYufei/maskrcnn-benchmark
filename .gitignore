@@ -25,6 +25,8 @@ dist/
 # Pycharm editor settings
 .idea
 
+*.DS_Store
+
 # project dirs
 /datasets
 /models
