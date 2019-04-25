@@ -1,0 +1,21 @@
+MODEL:
+  META_ARCHITECTURE: "GeneralizedRCNN"
+  WEIGHT: "catalog://ImageNetPretrained/MSRA/R-101"
+  BACKBONE:
+    CONV_BODY: "R-100-C4"
+  RPN:
+    PRE_NMS_TOP_N_TEST: 6000
+    POST_NMS_TOP_N_TEST: 1000
+  ROI_BOX_HEAD:
+    NUM_CLASSES: 2001
+    ATTR_NUM_CLASSES: 501
+    HEAD: "ROIBoxAttrHead"
+    LOSS: "FastRCNNLossWithAttrComputation"
+    PREDICTOR: "FastRCNNAttrPredictor"
+DATASETS:
+  TRAIN: ("vg_train",)
+  TEST: ("vg_dev",)
+SOLVER:
+  STEPS: (120000, 160000)
+  MAX_ITER: 180000
+  IMS_PER_BATCH: 8
