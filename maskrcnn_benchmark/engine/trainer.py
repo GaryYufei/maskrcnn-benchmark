@@ -83,7 +83,6 @@ def do_train(
         optimizer.step()
 
         batch_time = time.time() - end
-        end = time.time()
         meters.update(time=batch_time, data=data_time)
 
         eta_seconds = meters.time.global_avg * (max_iter - iteration)
@@ -114,6 +113,8 @@ def do_train(
             if result is not None and float(result['map']) > best_map:
                 best_map = float(result['map'])
                 checkpointer.save("model_{:07d}_{:.4f}".format(iteration, best_map), **arguments)
+
+        end = time.time()
 
 
     total_training_time = time.time() - start_training_time
