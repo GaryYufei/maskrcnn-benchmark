@@ -91,7 +91,7 @@ class FPNPredictor(nn.Module):
         nn.init.constant_(self.bbox_pred.bias, 0)
 
         if not cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
-            self.cls_score = nn.Linear(num_inputs, num_classes)
+            self.cls_score = nn.Linear(representation_size, num_classes)
             nn.init.normal_(self.cls_score.weight, mean=0, std=0.01)
             nn.init.constant_(self.cls_score.bias, 0)
         else:
