@@ -6,20 +6,21 @@ import h5py
 
 @registry.ROI_BOX_PREDICTOR.register("FastRCNNPredictor")
 class FastRCNNPredictor(nn.Module):
-    def __init__(self, config, in_channels):
+    def __init__(self, cfg, in_channels):
         super(FastRCNNPredictor, self).__init__()
         assert in_channels is not None
+        self.cfg = cfg
 
         num_inputs = in_channels
-        num_classes = config.MODEL.ROI_BOX_HEAD.NUM_CLASSES
+        num_classes = cfg.MODEL.ROI_BOX_HEAD.NUM_CLASSES
         self.avgpool = nn.AdaptiveAvgPool2d(1)
-        num_bbox_reg_classes = 2 if config.MODEL.CLS_AGNOSTIC_BBOX_REG else num_classes
+        num_bbox_reg_classes = 2 if cfg.MODEL.CLS_AGNOSTIC_BBOX_REG else num_classes
         self.bbox_pred = nn.Linear(num_inputs, num_bbox_reg_classes * 4)
 
         nn.init.normal_(self.bbox_pred.weight, mean=0, std=0.001)
         nn.init.constant_(self.bbox_pred.bias, 0)
 
-        if not config.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
+        if not cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
             self.cls_score = nn.Linear(num_inputs, num_classes)
             nn.init.normal_(self.cls_score.weight, mean=0, std=0.01)
             nn.init.constant_(self.cls_score.bias, 0)
@@ -37,7 +38,7 @@ class FastRCNNPredictor(nn.Module):
         x = self.avgpool(x)
         x = x.view(x.size(0), -1)
         bbox_pred = self.bbox_pred(x)
-        if config.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
+        if self.cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
             x = self.embedding_fc(x)
         cls_logit = self.cls_score(x)
         return cls_logit, bbox_pred
@@ -49,7 +50,7 @@ class FastRCNNAttrPredictor(FastRCNNPredictor):
         num_classes = cfg.MODEL.ROI_BOX_HEAD.ATTR_NUM_CLASSES
         num_inputs = in_channels
 
-        if not config.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
+        if not cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
             self.attr_score = nn.Linear(num_inputs, num_classes)
             nn.init.normal_(self.attr_score.weight, std=0.01)
             nn.init.constant_(self.attr_score.bias, 0)
@@ -65,7 +66,7 @@ class FastRCNNAttrPredictor(FastRCNNPredictor):
         x = x.view(x.size(0), -1)
         bbox_pred = self.bbox_pred(x)
 
-        if config.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
+        if self.cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
             x = self.embedding_fc(x)
 
         cls_logit = self.cls_score(x)
@@ -78,6 +79,7 @@ class FastRCNNAttrPredictor(FastRCNNPredictor):
 class FPNPredictor(nn.Module):
     def __init__(self, cfg, in_channels):
         super(FPNPredictor, self).__init__()
+        self.cfg = cfg
         num_classes = cfg.MODEL.ROI_BOX_HEAD.NUM_CLASSES
         representation_size = in_channels
 
@@ -88,7 +90,7 @@ class FPNPredictor(nn.Module):
         nn.init.normal_(self.bbox_pred.weight, std=0.001)
         nn.init.constant_(self.bbox_pred.bias, 0)
 
-        if not config.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
+        if not cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
             self.cls_score = nn.Linear(num_inputs, num_classes)
             nn.init.normal_(self.cls_score.weight, mean=0, std=0.01)
             nn.init.constant_(self.cls_score.bias, 0)
@@ -108,7 +110,7 @@ class FPNPredictor(nn.Module):
             x = x.view(x.size(0), -1)
         bbox_deltas = self.bbox_pred(x)
 
-        if config.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
+        if self.cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
             x = self.embedding_fc(x)
         scores = self.cls_score(x)
         
@@ -121,7 +123,7 @@ class FPNAttrPredictor(FPNPredictor):
         num_classes = cfg.MODEL.ROI_BOX_HEAD.ATTR_NUM_CLASSES
         representation_size = in_channels
 
-        if not config.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
+        if not cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
             self.attr_score = nn.Linear(representation_size, num_classes)
             nn.init.normal_(self.attr_score.weight, std=0.01)
             nn.init.constant_(self.attr_score.bias, 0)
@@ -139,7 +141,7 @@ class FPNAttrPredictor(FPNPredictor):
 
         bbox_deltas = self.bbox_pred(x)
 
-        if config.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
+        if self.cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
             x = self.embedding_fc(x)
             
         scores = self.cls_score(x)
