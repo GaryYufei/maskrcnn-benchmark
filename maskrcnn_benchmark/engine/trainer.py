@@ -111,7 +111,7 @@ def do_train(
         if iteration % checkpoint_period == 0 or iteration == max_iter:
             result = run_test_func(model)[0]
             model.train()
-            if float(result['map']) > best_map:
+            if result is not None and float(result['map']) > best_map:
                 best_map = float(result['map'])
                 checkpointer.save("model_{:07d}_%.4f".format(iteration, best_map), **arguments)
 
