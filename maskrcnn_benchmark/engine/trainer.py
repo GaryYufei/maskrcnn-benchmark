@@ -113,7 +113,7 @@ def do_train(
             model.train()
             if result is not None and float(result['map']) > best_map:
                 best_map = float(result['map'])
-                checkpointer.save("model_{:07d}_%.4f".format(iteration, best_map), **arguments)
+                checkpointer.save("model_{:07d}_{:.4f}".format(iteration, best_map), **arguments)
 
 
     total_training_time = time.time() - start_training_time
