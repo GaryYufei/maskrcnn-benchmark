@@ -106,8 +106,9 @@ def run_test(cfg, model, distributed):
             mkdir(output_folder)
             output_folders[idx] = output_folder
     data_loaders_val = make_data_loader(cfg, is_train=False, is_distributed=distributed)
+    result_list = []
     for output_folder, dataset_name, data_loader_val in zip(output_folders, dataset_names, data_loaders_val):
-        inference(
+        result = inference(
             model,
             data_loader_val,
             dataset_name=dataset_name,
@@ -118,7 +119,9 @@ def run_test(cfg, model, distributed):
             expected_results_sigma_tol=cfg.TEST.EXPECTED_RESULTS_SIGMA_TOL,
             output_folder=output_folder,
         )
+        result_list.append(result)
         synchronize()
+    return result_list
 
 
 def main():

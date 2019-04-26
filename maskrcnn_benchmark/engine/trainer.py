@@ -109,7 +109,7 @@ def do_train(
             )
 
         if iteration % checkpoint_period == 0 or iteration == max_iter:
-            result = run_test_func(model)
+            result = run_test_func(model)[0]
             model.train()
             if float(result['map']) > best_map:
                 best_map = float(result['map'])
