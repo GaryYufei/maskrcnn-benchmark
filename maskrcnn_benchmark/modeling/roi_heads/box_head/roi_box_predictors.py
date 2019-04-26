@@ -25,21 +25,25 @@ class FastRCNNPredictor(nn.Module):
             nn.init.normal_(self.cls_score.weight, mean=0, std=0.01)
             nn.init.constant_(self.cls_score.bias, 0)
         else:
-            self.embedding_fc = nn.Linear(num_inputs, 512)
+            self.embedding_fc = nn.Linear(num_inputs, cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_DIM)
             nn.init.normal_(self.cls_fc.weight, mean=0, std=0.01)
             nn.init.constant_(self.cls_fc.bias, 0)
 
-            self.cls_score = nn.Linear(512, num_classes)
-            with h5py.File(config.MODEL.ROI_BOX_HEAD.EMBEDDING_WEIGHT, 'r') as fin:
+            self.cls_score = nn.Linear(cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_DIM, num_classes)
+            with h5py.File(cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_WEIGHT, 'r') as fin:
                 self.cls_score.weight.data.copy_(torch.FloatTensor(fin['cls']['W']))
                 self.cls_score.bias.data.copy_(torch.FloatTensor(fin['cls']['b']))
+                self.cls_score.weight.requires_grad = False
+                self.cls_score.bias.requires_grad = False
 
     def forward(self, x):
         x = self.avgpool(x)
         x = x.view(x.size(0), -1)
         bbox_pred = self.bbox_pred(x)
+
         if self.cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
             x = self.embedding_fc(x)
+
         cls_logit = self.cls_score(x)
         return cls_logit, bbox_pred
 
@@ -55,10 +59,12 @@ class FastRCNNAttrPredictor(FastRCNNPredictor):
             nn.init.normal_(self.attr_score.weight, std=0.01)
             nn.init.constant_(self.attr_score.bias, 0)
         else:
-            self.attr_score = nn.Linear(512, num_classes)
-            with h5py.File(config.MODEL.ROI_BOX_HEAD.EMBEDDING_WEIGHT, 'r') as fin:
-                self.cls_score.weight.data.copy_(torch.FloatTensor(fin['attr']['W']))
-                self.cls_score.bias.data.copy_(torch.FloatTensor(fin['attr']['b']))
+            self.attr_score = nn.Linear(cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_DIM, num_classes)
+            with h5py.File(cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_WEIGHT, 'r') as fin:
+                self.attr_score.weight.data.copy_(torch.FloatTensor(fin['attr']['W']))
+                self.attr_score.bias.data.copy_(torch.FloatTensor(fin['attr']['b']))
+                self.attr_score.weight.requires_grad = False
+                self.attr_score.bias.requires_grad = False
             
 
     def forward(self, x):
@@ -95,14 +101,17 @@ class FPNPredictor(nn.Module):
             nn.init.normal_(self.cls_score.weight, mean=0, std=0.01)
             nn.init.constant_(self.cls_score.bias, 0)
         else:
-            self.embedding_fc = nn.Linear(num_inputs, 512)
+            self.embedding_fc = nn.Linear(num_inputs, cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_DIM)
             nn.init.normal_(self.cls_fc.weight, mean=0, std=0.01)
             nn.init.constant_(self.cls_fc.bias, 0)
 
-            self.cls_score = nn.Linear(512, num_classes)
-            with h5py.File(config.MODEL.ROI_BOX_HEAD.EMBEDDING_WEIGHT, 'r') as fin:
+            self.cls_score = nn.Linear(cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_DIM, num_classes)
+            with h5py.File(cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_WEIGHT, 'r') as fin:
                 self.cls_score.weight.data.copy_(torch.FloatTensor(fin['cls']['W']))
                 self.cls_score.bias.data.copy_(torch.FloatTensor(fin['cls']['b']))
+                self.cls_score.weight.requires_grad = False
+                self.cls_score.bias.requires_grad = False
+
 
     def forward(self, x):
         if x.ndimension() == 4:
@@ -128,10 +137,12 @@ class FPNAttrPredictor(FPNPredictor):
             nn.init.normal_(self.attr_score.weight, std=0.01)
             nn.init.constant_(self.attr_score.bias, 0)
         else:
-            self.attr_score = nn.Linear(512, num_classes)
-            with h5py.File(config.MODEL.ROI_BOX_HEAD.EMBEDDING_WEIGHT, 'r') as fin:
-                self.cls_score.weight.data.copy_(torch.FloatTensor(fin['attr']['W']))
-                self.cls_score.bias.data.copy_(torch.FloatTensor(fin['attr']['b']))
+            self.attr_score = nn.Linear(cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_DIM, num_classes)
+            with h5py.File(cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_WEIGHT, 'r') as fin:
+                self.attr_score.weight.data.copy_(torch.FloatTensor(fin['attr']['W']))
+                self.attr_score.bias.data.copy_(torch.FloatTensor(fin['attr']['b']))
+                self.attr_score.weight.requires_grad = False
+                self.attr_score.bias.requires_grad = False
             
 
     def forward(self, x):
