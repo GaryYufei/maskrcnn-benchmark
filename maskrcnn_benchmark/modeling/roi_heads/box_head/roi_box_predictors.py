@@ -47,10 +47,10 @@ class FastRCNNAttrPredictor(FastRCNNPredictor):
     def __init__(self, cfg, in_channels):
         super(FastRCNNAttrPredictor, self).__init__(cfg, in_channels)
         num_classes = cfg.MODEL.ROI_BOX_HEAD.ATTR_NUM_CLASSES
-        representation_size = in_channels
+        num_inputs = in_channels
 
         if not config.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
-            self.attr_score = nn.Linear(representation_size, num_classes)
+            self.attr_score = nn.Linear(num_inputs, num_classes)
             nn.init.normal_(self.attr_score.weight, std=0.01)
             nn.init.constant_(self.attr_score.bias, 0)
         else:
