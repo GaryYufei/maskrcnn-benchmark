@@ -43,10 +43,13 @@ class FastRCNNAttrPredictor(FastRCNNPredictor):
             
 
     def forward(self, x):
-        scores, bbox_deltas = super(FastRCNNAttrPredictor, self).forward(x)
+        x = self.avgpool(x)
+        x = x.view(x.size(0), -1)
+        cls_logit = self.cls_score(x)
+        bbox_pred = self.bbox_pred(x)
         attr_scores = self.attr_score(x)
 
-        return attr_scores, scores, bbox_deltas
+        return attr_scores, cls_logit, bbox_pred
 
 
 @registry.ROI_BOX_PREDICTOR.register("FPNPredictor")
@@ -87,7 +90,11 @@ class FPNAttrPredictor(FPNPredictor):
             
 
     def forward(self, x):
-        scores, bbox_deltas = super(FPNAttrPredictor, self).forward(x)
+        if x.ndimension() == 4:
+            assert list(x.shape[2:]) == [1, 1]
+            x = x.view(x.size(0), -1)
+        scores = self.cls_score(x)
+        bbox_deltas = self.bbox_pred(x)
         attr_scores = self.attr_score(x)
 
         return attr_scores, scores, bbox_deltas
