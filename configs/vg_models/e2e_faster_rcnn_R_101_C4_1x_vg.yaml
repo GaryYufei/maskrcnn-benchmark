@@ -9,9 +9,9 @@ MODEL:
   ROI_BOX_HEAD:
     NUM_CLASSES: 2001
     ATTR_NUM_CLASSES: 501
-    HEAD: "ROIBoxAttrHead"
-    LOSS: "FastRCNNLossWithAttrComputation"
-    PREDICTOR: "FastRCNNAttrPredictor"
+    HEAD: "ROIBoxHead"
+    LOSS: "FastRCNNLossComputation"
+    PREDICTOR: "FastRCNNPredictor"
 DATASETS:
   TRAIN: ("vg_train",)
   TEST: ("vg_dev",)
