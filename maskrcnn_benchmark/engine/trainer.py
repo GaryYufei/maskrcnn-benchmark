@@ -6,7 +6,7 @@ import time
 import torch
 import torch.distributed as dist
 
-from maskrcnn_benchmark.utils.comm import get_world_size
+from maskrcnn_benchmark.utils.comm import get_world_size, is_main_process
 from maskrcnn_benchmark.utils.metric_logger import MetricLogger
 
 from apex import amp
@@ -109,8 +109,9 @@ def do_train(
 
         if iteration % checkpoint_period == 0 or iteration == max_iter:
             result = run_test_func(model)[0]
+
             model.train()
-            if result is not None and float(result['map']) > best_map:
+            if is_main_process() and float(result['map']) > best_map:
                 best_map = float(result['map'])
                 checkpointer.save("model_{:07d}_{:.4f}".format(iteration, best_map), **arguments)
 
