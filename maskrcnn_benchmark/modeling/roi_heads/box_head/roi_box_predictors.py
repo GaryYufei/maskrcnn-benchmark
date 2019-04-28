@@ -11,25 +11,24 @@ class FastRCNNPredictor(nn.Module):
         assert in_channels is not None
         self.cfg = cfg
 
-        num_inputs = in_channels
+        num_inputs = cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_DIM if cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT else in_channels
         num_classes = cfg.MODEL.ROI_BOX_HEAD.NUM_CLASSES
 
         num_bbox_reg_classes = 2 if cfg.MODEL.CLS_AGNOSTIC_BBOX_REG else num_classes
         self.bbox_pred = nn.Linear(num_inputs, num_bbox_reg_classes * 4)
-
+        self.cls_score = nn.Linear(num_inputs, num_classes)
         nn.init.normal_(self.bbox_pred.weight, mean=0, std=0.001)
         nn.init.constant_(self.bbox_pred.bias, 0)
 
         if not cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
-            self.cls_score = nn.Linear(num_inputs, num_classes)
             nn.init.normal_(self.cls_score.weight, mean=0, std=0.01)
             nn.init.constant_(self.cls_score.bias, 0)
         else:
-            self.embedding_fc = nn.Linear(num_inputs, cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_DIM)
+            self.tanh = nn.Tanh()
+            self.embedding_fc = nn.Linear(in_channels, cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_DIM)
             nn.init.normal_(self.embedding_fc.weight, mean=0, std=0.01)
             nn.init.constant_(self.embedding_fc.bias, 0)
 
-            self.cls_score = nn.Linear(cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_DIM, num_classes)
             with h5py.File(cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_WEIGHT, 'r') as fin:
                 self.cls_score.weight.data.copy_(torch.FloatTensor(fin['cls']['W']))
                 self.cls_score.bias.data.copy_(torch.FloatTensor(fin['cls']['b']))
@@ -41,11 +40,11 @@ class FastRCNNPredictor(nn.Module):
             assert list(x.shape[2:]) == [1, 1]
             x = x.view(x.size(0), -1)
 
-        bbox_pred = self.bbox_pred(x)
-
         if self.cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
             x = self.embedding_fc(x)
+            x = self.tanh(x)
 
+        bbox_pred = self.bbox_pred(x)
         cls_logit = self.cls_score(x)
         return cls_logit, bbox_pred
 
@@ -54,14 +53,13 @@ class FastRCNNAttrPredictor(FastRCNNPredictor):
     def __init__(self, cfg, in_channels):
         super(FastRCNNAttrPredictor, self).__init__(cfg, in_channels)
         num_classes = cfg.MODEL.ROI_BOX_HEAD.ATTR_NUM_CLASSES
-        num_inputs = in_channels
+        num_inputs = cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_DIM if cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT else in_channels
+        self.attr_score = nn.Linear(num_inputs, num_classes)
 
         if not cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
-            self.attr_score = nn.Linear(num_inputs, num_classes)
             nn.init.normal_(self.attr_score.weight, std=0.01)
             nn.init.constant_(self.attr_score.bias, 0)
         else:
-            self.attr_score = nn.Linear(cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_DIM, num_classes)
             with h5py.File(cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_WEIGHT, 'r') as fin:
                 self.attr_score.weight.data.copy_(torch.FloatTensor(fin['attr']['W']))
                 self.attr_score.bias.data.copy_(torch.FloatTensor(fin['attr']['b']))
@@ -73,12 +71,12 @@ class FastRCNNAttrPredictor(FastRCNNPredictor):
         if x.ndimension() == 4:
             assert list(x.shape[2:]) == [1, 1]
             x = x.view(x.size(0), -1)
-            
-        bbox_pred = self.bbox_pred(x)
-
+        
         if self.cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
             x = self.embedding_fc(x)
+            x = self.tanh(x)
 
+        bbox_pred = self.bbox_pred(x)
         cls_logit = self.cls_score(x)
         attr_scores = self.attr_score(x)
 
@@ -91,25 +89,25 @@ class FPNPredictor(nn.Module):
         super(FPNPredictor, self).__init__()
         self.cfg = cfg
         num_classes = cfg.MODEL.ROI_BOX_HEAD.NUM_CLASSES
-        representation_size = in_channels
+        representation_size = cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_DIM if cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT else in_channels
+
 
         self.cls_score = nn.Linear(representation_size, num_classes)
         num_bbox_reg_classes = 2 if cfg.MODEL.CLS_AGNOSTIC_BBOX_REG else num_classes
         self.bbox_pred = nn.Linear(representation_size, num_bbox_reg_classes * 4)
-
+        self.cls_score = nn.Linear(representation_size, num_classes)
         nn.init.normal_(self.bbox_pred.weight, std=0.001)
         nn.init.constant_(self.bbox_pred.bias, 0)
 
         if not cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
-            self.cls_score = nn.Linear(representation_size, num_classes)
             nn.init.normal_(self.cls_score.weight, mean=0, std=0.01)
             nn.init.constant_(self.cls_score.bias, 0)
         else:
-            self.embedding_fc = nn.Linear(num_inputs, cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_DIM)
+            self.tanh = nn.Tanh()
+            self.embedding_fc = nn.Linear(in_channels, cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_DIM)
             nn.init.normal_(self.cls_fc.weight, mean=0, std=0.01)
             nn.init.constant_(self.cls_fc.bias, 0)
 
-            self.cls_score = nn.Linear(cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_DIM, num_classes)
             with h5py.File(cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_WEIGHT, 'r') as fin:
                 self.cls_score.weight.data.copy_(torch.FloatTensor(fin['cls']['W']))
                 self.cls_score.bias.data.copy_(torch.FloatTensor(fin['cls']['b']))
@@ -121,10 +119,12 @@ class FPNPredictor(nn.Module):
         if x.ndimension() == 4:
             assert list(x.shape[2:]) == [1, 1]
             x = x.view(x.size(0), -1)
-        bbox_deltas = self.bbox_pred(x)
-
+        
         if self.cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
             x = self.embedding_fc(x)
+            x = self.tanh(x)
+
+        bbox_deltas = self.bbox_pred(x)
         scores = self.cls_score(x)
         
         return scores, bbox_deltas
@@ -154,11 +154,11 @@ class FPNAttrPredictor(FPNPredictor):
             assert list(x.shape[2:]) == [1, 1]
             x = x.view(x.size(0), -1)
 
-        bbox_deltas = self.bbox_pred(x)
-
         if self.cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
             x = self.embedding_fc(x)
-            
+            x = self.tanh(x)
+
+        bbox_deltas = self.bbox_pred(x)
         scores = self.cls_score(x)
         attr_scores = self.attr_score(x)
 
