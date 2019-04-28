@@ -13,7 +13,7 @@ class FastRCNNPredictor(nn.Module):
 
         num_inputs = in_channels
         num_classes = cfg.MODEL.ROI_BOX_HEAD.NUM_CLASSES
-        self.avgpool = nn.AdaptiveAvgPool2d(1)
+
         num_bbox_reg_classes = 2 if cfg.MODEL.CLS_AGNOSTIC_BBOX_REG else num_classes
         self.bbox_pred = nn.Linear(num_inputs, num_bbox_reg_classes * 4)
 
@@ -37,8 +37,10 @@ class FastRCNNPredictor(nn.Module):
                 self.cls_score.bias.requires_grad = False
 
     def forward(self, x):
-        x = self.avgpool(x)
-        x = x.view(x.size(0), -1)
+        if x.ndimension() == 4:
+            assert list(x.shape[2:]) == [1, 1]
+            x = x.view(x.size(0), -1)
+
         bbox_pred = self.bbox_pred(x)
 
         if self.cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
@@ -68,8 +70,10 @@ class FastRCNNAttrPredictor(FastRCNNPredictor):
             
 
     def forward(self, x):
-        x = self.avgpool(x)
-        x = x.view(x.size(0), -1)
+        if x.ndimension() == 4:
+            assert list(x.shape[2:]) == [1, 1]
+            x = x.view(x.size(0), -1)
+            
         bbox_pred = self.bbox_pred(x)
 
         if self.cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:

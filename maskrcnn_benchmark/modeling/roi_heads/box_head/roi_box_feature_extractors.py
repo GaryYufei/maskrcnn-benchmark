@@ -38,11 +38,13 @@ class ResNet50Conv5ROIFeatureExtractor(nn.Module):
 
         self.pooler = pooler
         self.head = head
+        self.avgpool = nn.AdaptiveAvgPool2d(1)
         self.out_channels = head.out_channels
 
     def forward(self, x, proposals):
         x = self.pooler(x, proposals)
         x = self.head(x)
+        x = self.avgpool(x)
         return x
 
 
