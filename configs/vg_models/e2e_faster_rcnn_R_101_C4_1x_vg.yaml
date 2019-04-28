@@ -9,6 +9,8 @@ MODEL:
   ROI_BOX_HEAD:
     NUM_CLASSES: 1601
     ATTR_NUM_CLASSES: 401
+    EMBEDDING_INIT: True
+    EMBEDDING_WEIGHT: "datasets/vg/peter_ann/elmo_embedding.h5py"
     HEAD: "ROIBoxAttrHead"
     LOSS: "FastRCNNLossWithAttrComputation"
     PREDICTOR: "FastRCNNAttrPredictor"

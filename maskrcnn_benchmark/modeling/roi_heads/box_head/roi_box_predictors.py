@@ -2,7 +2,7 @@
 from maskrcnn_benchmark.modeling import registry
 from torch import nn
 import h5py
-
+import torch
 
 @registry.ROI_BOX_PREDICTOR.register("FastRCNNPredictor")
 class FastRCNNPredictor(nn.Module):
@@ -26,8 +26,8 @@ class FastRCNNPredictor(nn.Module):
             nn.init.constant_(self.cls_score.bias, 0)
         else:
             self.embedding_fc = nn.Linear(num_inputs, cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_DIM)
-            nn.init.normal_(self.cls_fc.weight, mean=0, std=0.01)
-            nn.init.constant_(self.cls_fc.bias, 0)
+            nn.init.normal_(self.embedding_fc.weight, mean=0, std=0.01)
+            nn.init.constant_(self.embedding_fc.bias, 0)
 
             self.cls_score = nn.Linear(cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_DIM, num_classes)
             with h5py.File(cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_WEIGHT, 'r') as fin:
