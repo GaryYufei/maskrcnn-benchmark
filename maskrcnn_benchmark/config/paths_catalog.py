@@ -9,15 +9,15 @@ class DatasetCatalog(object):
     DATASETS = {
         "vg_train": {
             "img_dir": "vg/img",
-            "vg_ann": "vg/ann/train.json",
-            "class_file": "vg/class_labels.txt",
-            "attr_file": "vg/attr_labels.txt"
+            "vg_ann": "vg/peter_ann/train.json",
+            "class_file": "vg/peter_ann/class_labels.txt",
+            "attr_file": "vg/peter_ann/attr_labels.txt"
         },
         "vg_dev": {
             "img_dir": "vg/img",
-            "vg_ann": "vg/ann/dev.json",
-            "class_file": "vg/class_labels.txt",
-            "attr_file": "vg/attr_labels.txt"
+            "vg_ann": "vg/peter_ann/dev.json",
+            "class_file": "vg/peter_ann/class_labels.txt",
+            "attr_file": "vg/peter_ann/attr_labels.txt"
         },
         "coco_2017_train": {
             "img_dir": "coco/train2017",

@@ -7,11 +7,11 @@ MODEL:
     PRE_NMS_TOP_N_TEST: 6000
     POST_NMS_TOP_N_TEST: 1000
   ROI_BOX_HEAD:
-    NUM_CLASSES: 2001
-    ATTR_NUM_CLASSES: 501
-    HEAD: "ROIBoxHead"
-    LOSS: "FastRCNNLossComputation"
-    PREDICTOR: "FastRCNNPredictor"
+    NUM_CLASSES: 1601
+    ATTR_NUM_CLASSES: 401
+    HEAD: "ROIBoxAttrHead"
+    LOSS: "FastRCNNLossWithAttrComputation"
+    PREDICTOR: "FastRCNNAttrPredictor"
 DATASETS:
   TRAIN: ("vg_train",)
   TEST: ("vg_dev",)

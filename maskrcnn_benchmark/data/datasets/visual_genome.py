@@ -6,18 +6,22 @@ class VGDataset(object):
     def __init__(self, img_dir, vg_ann, class_file, attr_file, transforms=None):
         self.img_dir = img_dir
 
-        self.cls_dict = {}
+        self.cls_dict = {"backward": 0}
         self.cls_list = [None]
         with open(class_file) as cls_file:
             for line in cls_file:
                 line = line.strip()
+                if ',' in line:
+                    line = line.split(',')[0]
                 self.cls_list.append(line)
-                self.cls_dict[line] = 1 + len(self.cls_dict)
+                self.cls_dict[line] = len(self.cls_dict)
 
-        self.attr_dict = {}
+        self.attr_dict = {"*empty*": 0}
         with open(attr_file) as attrs_file:
             for line in attrs_file:
                 line = line.strip()
+                if ',' in line:
+                    line = line.split(',')[0]
                 self.attr_dict[line] = len(self.attr_dict)
 
         with open(vg_ann) as ann:
