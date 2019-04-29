@@ -14,6 +14,7 @@ from maskrcnn_benchmark.modeling.make_layers import make_fc
 class ResNet50Conv5ROIFeatureExtractor(nn.Module):
     def __init__(self, config, in_channels):
         super(ResNet50Conv5ROIFeatureExtractor, self).__init__()
+        self.config = config
 
         resolution = config.MODEL.ROI_BOX_HEAD.POOLER_RESOLUTION
         scales = config.MODEL.ROI_BOX_HEAD.POOLER_SCALES
@@ -39,12 +40,21 @@ class ResNet50Conv5ROIFeatureExtractor(nn.Module):
         self.pooler = pooler
         self.head = head
         self.avgpool = nn.AdaptiveAvgPool2d(1)
-        self.out_channels = head.out_channels
+        self.out_channels = config.MODEL.ROI_BOX_HEAD.EMBEDDING_DIM if config.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT else head.out_channels
+
+        if config.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
+            self.tanh = nn.Tanh()
+            self.embedding_fc = nn.Linear(head.out_channels, cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_DIM)
+            nn.init.normal_(self.embedding_fc.weight, mean=0, std=0.01)
+            nn.init.constant_(self.embedding_fc.bias, 0)
 
     def forward(self, x, proposals):
         x = self.pooler(x, proposals)
         x = self.head(x)
         x = self.avgpool(x)
+        if self.config.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
+            x = self.embedding_fc(x)
+            x = self.tanh(x)
         return x
 
 
