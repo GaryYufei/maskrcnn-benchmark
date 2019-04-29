@@ -24,11 +24,6 @@ class FastRCNNPredictor(nn.Module):
             nn.init.normal_(self.cls_score.weight, mean=0, std=0.01)
             nn.init.constant_(self.cls_score.bias, 0)
         else:
-            self.tanh = nn.Tanh()
-            self.embedding_fc = nn.Linear(in_channels, cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_DIM)
-            nn.init.normal_(self.embedding_fc.weight, mean=0, std=0.01)
-            nn.init.constant_(self.embedding_fc.bias, 0)
-
             with h5py.File(cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_WEIGHT, 'r') as fin:
                 self.cls_score.weight.data.copy_(torch.FloatTensor(fin['cls']['W']))
                 self.cls_score.bias.data.copy_(torch.FloatTensor(fin['cls']['b']))
@@ -39,10 +34,6 @@ class FastRCNNPredictor(nn.Module):
         if x.ndimension() == 4:
             assert list(x.shape[2:]) == [1, 1]
             x = x.view(x.size(0), -1)
-
-        if self.cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
-            x = self.embedding_fc(x)
-            x = self.tanh(x)
 
         bbox_pred = self.bbox_pred(x)
         cls_logit = self.cls_score(x)
@@ -71,10 +62,6 @@ class FastRCNNAttrPredictor(FastRCNNPredictor):
         if x.ndimension() == 4:
             assert list(x.shape[2:]) == [1, 1]
             x = x.view(x.size(0), -1)
-        
-        if self.cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
-            x = self.embedding_fc(x)
-            x = self.tanh(x)
 
         bbox_pred = self.bbox_pred(x)
         cls_logit = self.cls_score(x)
@@ -103,10 +90,6 @@ class FPNPredictor(nn.Module):
             nn.init.normal_(self.cls_score.weight, mean=0, std=0.01)
             nn.init.constant_(self.cls_score.bias, 0)
         else:
-            self.tanh = nn.Tanh()
-            self.embedding_fc = nn.Linear(in_channels, cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_DIM)
-            nn.init.normal_(self.cls_fc.weight, mean=0, std=0.01)
-            nn.init.constant_(self.cls_fc.bias, 0)
 
             with h5py.File(cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_WEIGHT, 'r') as fin:
                 self.cls_score.weight.data.copy_(torch.FloatTensor(fin['cls']['W']))
@@ -119,10 +102,6 @@ class FPNPredictor(nn.Module):
         if x.ndimension() == 4:
             assert list(x.shape[2:]) == [1, 1]
             x = x.view(x.size(0), -1)
-        
-        if self.cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
-            x = self.embedding_fc(x)
-            x = self.tanh(x)
 
         bbox_deltas = self.bbox_pred(x)
         scores = self.cls_score(x)
@@ -153,10 +132,6 @@ class FPNAttrPredictor(FPNPredictor):
         if x.ndimension() == 4:
             assert list(x.shape[2:]) == [1, 1]
             x = x.view(x.size(0), -1)
-
-        if self.cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
-            x = self.embedding_fc(x)
-            x = self.tanh(x)
 
         bbox_deltas = self.bbox_pred(x)
         scores = self.cls_score(x)
