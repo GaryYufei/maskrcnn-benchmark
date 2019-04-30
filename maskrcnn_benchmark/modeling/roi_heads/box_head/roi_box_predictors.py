@@ -24,6 +24,10 @@ class FastRCNNPredictor(nn.Module):
             nn.init.normal_(self.cls_score.weight, mean=0, std=0.01)
             nn.init.constant_(self.cls_score.bias, 0)
         else:
+            self.tanh = nn.Tanh()
+            self.embedding_fc = nn.Linear(in_channels, config.MODEL.ROI_BOX_HEAD.EMBEDDING_DIM)
+            nn.init.normal_(self.embedding_fc.weight, mean=0, std=0.01)
+            nn.init.constant_(self.embedding_fc.bias, 0)
             with h5py.File(cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_WEIGHT, 'r') as fin:
                 self.cls_score.weight.data.copy_(torch.FloatTensor(fin['cls']['W']))
                 self.cls_score.bias.data.copy_(torch.FloatTensor(fin['cls']['b']))
@@ -38,7 +42,7 @@ class FastRCNNPredictor(nn.Module):
         bbox_pred = self.bbox_pred(x)
 
         if self.cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
-            [cls_vec, _] = torch.split(x, [512, 1536], dim=-1)
+            cls_vec = self.tanh(self.embedding_fc(x))
         else:
             cls_vec = x
 
@@ -72,12 +76,12 @@ class FastRCNNAttrPredictor(FastRCNNPredictor):
         bbox_pred = self.bbox_pred(x)
 
         if self.cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
-            [cls_vec, attr_vec, _] = torch.split(x, [512, 512, 1024], dim=-1)
+            _vec = self.tanh(self.embedding_fc(x))
         else:
-            cls_vec, attr_vec = x, x
+            _vec = x
 
-        cls_logit = self.cls_score(cls_vec)
-        attr_scores = self.attr_score(attr_vec)
+        cls_logit = self.cls_score(_vec)
+        attr_scores = self.attr_score(_vec)
 
         return attr_scores, cls_logit, bbox_pred
 
