@@ -42,20 +42,20 @@ class ResNet50Conv5ROIFeatureExtractor(nn.Module):
         self.avgpool = nn.AdaptiveAvgPool2d(1)
         self.out_channels = config.MODEL.ROI_BOX_HEAD.EMBEDDING_DIM if config.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT else head.out_channels
 
-        if config.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
-            self.tanh = nn.Tanh()
-            self.embedding_fc = nn.Linear(head.out_channels, config.MODEL.ROI_BOX_HEAD.EMBEDDING_DIM)
-            nn.init.normal_(self.embedding_fc.weight, mean=0, std=0.01)
-            nn.init.constant_(self.embedding_fc.bias, 0)
+        # if config.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
+        #     self.tanh = nn.Tanh()
+        #     self.embedding_fc = nn.Linear(head.out_channels, config.MODEL.ROI_BOX_HEAD.EMBEDDING_DIM)
+        #     nn.init.normal_(self.embedding_fc.weight, mean=0, std=0.01)
+        #     nn.init.constant_(self.embedding_fc.bias, 0)
 
     def forward(self, x, proposals):
         x = self.pooler(x, proposals)
         x = self.head(x)
         x = self.avgpool(x)
         x = x.view(x.size(0), -1)
-        if self.config.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
-            x = self.embedding_fc(x)
-            x = self.tanh(x)
+        # if self.config.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
+        #     x = self.embedding_fc(x)
+        #     x = self.tanh(x)
         return x
 
 

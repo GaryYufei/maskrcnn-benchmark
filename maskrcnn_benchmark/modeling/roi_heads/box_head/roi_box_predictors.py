@@ -15,7 +15,7 @@ class FastRCNNPredictor(nn.Module):
         num_classes = cfg.MODEL.ROI_BOX_HEAD.NUM_CLASSES
 
         num_bbox_reg_classes = 2 if cfg.MODEL.CLS_AGNOSTIC_BBOX_REG else num_classes
-        self.bbox_pred = nn.Linear(num_inputs, num_bbox_reg_classes * 4)
+        self.bbox_pred = nn.Linear(in_channels, num_bbox_reg_classes * 4)
         self.cls_score = nn.Linear(num_inputs, num_classes)
         nn.init.normal_(self.bbox_pred.weight, mean=0, std=0.001)
         nn.init.constant_(self.bbox_pred.bias, 0)
@@ -36,7 +36,13 @@ class FastRCNNPredictor(nn.Module):
             x = x.view(x.size(0), -1)
 
         bbox_pred = self.bbox_pred(x)
-        cls_logit = self.cls_score(x)
+
+        if cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
+            [cls_vec, _] = torch.split(x, [512, 1536], dim=-1)
+        else:
+            cls_vec = x
+
+        cls_logit = self.cls_score(cls_vec)
         return cls_logit, bbox_pred
 
 @registry.ROI_BOX_PREDICTOR.register("FastRCNNAttrPredictor")
@@ -64,8 +70,14 @@ class FastRCNNAttrPredictor(FastRCNNPredictor):
             x = x.view(x.size(0), -1)
 
         bbox_pred = self.bbox_pred(x)
-        cls_logit = self.cls_score(x)
-        attr_scores = self.attr_score(x)
+
+        if cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
+            [cls_vec, attr_vec, _] = torch.split(x, [512, 512, 1024], dim=-1)
+        else:
+            cls_vec, attr_vec = x, x
+
+        cls_logit = self.cls_score(cls_vec)
+        attr_scores = self.attr_score(attr_vec)
 
         return attr_scores, cls_logit, bbox_pred
 
@@ -134,8 +146,13 @@ class FPNAttrPredictor(FPNPredictor):
             x = x.view(x.size(0), -1)
 
         bbox_deltas = self.bbox_pred(x)
-        scores = self.cls_score(x)
-        attr_scores = self.attr_score(x)
+        if cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
+            [cls_vec, attr_vec, _] = torch.split(x, [512, 512, 1024], dim=-1)
+        else:
+            cls_vec, attr_vec = x, x
+
+        scores = self.cls_score(cls_vec)
+        attr_scores = self.attr_score(attr_vec)
 
         return attr_scores, scores, bbox_deltas
 
