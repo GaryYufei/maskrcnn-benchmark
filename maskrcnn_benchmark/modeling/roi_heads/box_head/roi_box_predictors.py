@@ -37,7 +37,7 @@ class FastRCNNPredictor(nn.Module):
 
         bbox_pred = self.bbox_pred(x)
 
-        if cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
+        if self.cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
             [cls_vec, _] = torch.split(x, [512, 1536], dim=-1)
         else:
             cls_vec = x
@@ -71,7 +71,7 @@ class FastRCNNAttrPredictor(FastRCNNPredictor):
 
         bbox_pred = self.bbox_pred(x)
 
-        if cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
+        if self.cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
             [cls_vec, attr_vec, _] = torch.split(x, [512, 512, 1024], dim=-1)
         else:
             cls_vec, attr_vec = x, x
@@ -116,7 +116,13 @@ class FPNPredictor(nn.Module):
             x = x.view(x.size(0), -1)
 
         bbox_deltas = self.bbox_pred(x)
-        scores = self.cls_score(x)
+
+        if self.cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
+            [cls_vec, _] = torch.split(x, [512, 1536], dim=-1)
+        else:
+            cls_vec = x
+
+        scores = self.cls_score(cls_vec)
         
         return scores, bbox_deltas
 
@@ -146,7 +152,7 @@ class FPNAttrPredictor(FPNPredictor):
             x = x.view(x.size(0), -1)
 
         bbox_deltas = self.bbox_pred(x)
-        if cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
+        if self.cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
             [cls_vec, attr_vec, _] = torch.split(x, [512, 512, 1024], dim=-1)
         else:
             cls_vec, attr_vec = x, x
