@@ -80,7 +80,7 @@ class ROIBoxAttrHead(ROIBoxHead):
         attr_logits, class_logits, box_regression = self.predictor(x)
 
         if not self.training:
-            result = self.post_processor((class_logits, box_regression, x), proposals)
+            result = self.post_processor((attr_logits, class_logits, box_regression, x), proposals)
             return x, result, {}
 
         loss_attr, loss_classifier, loss_box_reg = self.loss_evaluator(
