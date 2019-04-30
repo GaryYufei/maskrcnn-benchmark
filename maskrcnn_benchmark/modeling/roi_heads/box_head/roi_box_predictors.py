@@ -25,7 +25,7 @@ class FastRCNNPredictor(nn.Module):
             nn.init.constant_(self.cls_score.bias, 0)
         else:
             self.tanh = nn.Tanh()
-            self.embedding_fc = nn.Linear(in_channels, config.MODEL.ROI_BOX_HEAD.EMBEDDING_DIM)
+            self.embedding_fc = nn.Linear(in_channels, cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_DIM)
             nn.init.normal_(self.embedding_fc.weight, mean=0, std=0.01)
             nn.init.constant_(self.embedding_fc.bias, 0)
             with h5py.File(cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_WEIGHT, 'r') as fin:
