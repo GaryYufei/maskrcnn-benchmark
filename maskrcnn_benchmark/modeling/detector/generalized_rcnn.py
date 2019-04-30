@@ -64,12 +64,12 @@ class GeneralizedRCNN(nn.Module):
 
         return result
 
-    def extract_object_representation(self, image):
+    def extract_object_representation(self, images):
         images = to_image_list(images)
         features = self.backbone(images.tensors)
-        proposals, proposal_losses = self.rpn(images, features, targets)
+        proposals, _ = self.rpn(images, features, None)
         if self.roi_heads:
-            x, result, _ = self.roi_heads(features, proposals, targets)
+            x, result, _ = self.roi_heads(features, proposals, None)
         else:
             # RPN-only models don't have roi_heads
             x = features

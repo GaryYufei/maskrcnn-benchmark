@@ -84,7 +84,7 @@ class PostProcessor(nn.Module):
             results.append(boxlist)
         return results
 
-    def prepare_boxlist(self, boxes, scores, features image_shape):
+    def prepare_boxlist(self, boxes, scores, features, image_shape):
         """
         Returns BoxList from `boxes` and adds probability scores information
         as an extra field

@@ -23,8 +23,6 @@ try:
 except ImportError:
     raise ImportError('Use APEX for mixed precision via apex.amp')
 
-def 
-
 def main():
     parser = argparse.ArgumentParser(description="PyTorch Object Detection Inference")
     parser.add_argument(
@@ -98,3 +96,7 @@ def main():
             output_folder=output_folder
         )
         synchronize()
+
+
+if __name__ == "__main__":
+    main()
