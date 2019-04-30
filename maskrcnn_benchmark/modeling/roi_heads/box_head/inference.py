@@ -43,7 +43,7 @@ class PostProcessor(nn.Module):
     def forward(self, x, boxes):
         """
         Arguments:
-            x (tuple[tensor, tensor]): x contains the class logits
+            x (tuple[tensor, tensor, tensor]): x contains the class logits
                 and the box_regression from the model.
             boxes (list[BoxList]): bounding boxes that are used as
                 reference, one for ech image
@@ -52,7 +52,7 @@ class PostProcessor(nn.Module):
             results (list[BoxList]): one BoxList for each image, containing
                 the extra fields labels and scores
         """
-        class_logits, box_regression = x
+        class_logits, box_regression, features = x
         class_prob = F.softmax(class_logits, -1)
 
         # TODO think about a representation of batch of boxes
@@ -72,18 +72,19 @@ class PostProcessor(nn.Module):
 
         proposals = proposals.split(boxes_per_image, dim=0)
         class_prob = class_prob.split(boxes_per_image, dim=0)
+        features = features.split(boxes_per_image, dim=0)
 
         results = []
-        for prob, boxes_per_img, image_shape in zip(
-            class_prob, proposals, image_shapes
+        for prob, boxes_per_img, image_shape, feature in zip(
+            class_prob, proposals, image_shapes, features
         ):
-            boxlist = self.prepare_boxlist(boxes_per_img, prob, image_shape)
+            boxlist = self.prepare_boxlist(boxes_per_img, prob, feature, image_shape)
             boxlist = boxlist.clip_to_image(remove_empty=False)
             boxlist = self.filter_results(boxlist, num_classes)
             results.append(boxlist)
         return results
 
-    def prepare_boxlist(self, boxes, scores, image_shape):
+    def prepare_boxlist(self, boxes, scores, features image_shape):
         """
         Returns BoxList from `boxes` and adds probability scores information
         as an extra field
@@ -100,6 +101,7 @@ class PostProcessor(nn.Module):
         scores = scores.reshape(-1)
         boxlist = BoxList(boxes, image_shape, mode="xyxy")
         boxlist.add_field("scores", scores)
+        boxlist.add_field("features", features)
         return boxlist
 
     def filter_results(self, boxlist, num_classes):
@@ -110,6 +112,7 @@ class PostProcessor(nn.Module):
         # if we had multi-class NMS, we could perform this directly on the boxlist
         boxes = boxlist.bbox.reshape(-1, num_classes * 4)
         scores = boxlist.get_field("scores").reshape(-1, num_classes)
+        features = boxlist.get_field("features").reshape(scores.size(0), -1)
 
         device = scores.device
         result = []
@@ -119,9 +122,11 @@ class PostProcessor(nn.Module):
         for j in range(1, num_classes):
             inds = inds_all[:, j].nonzero().squeeze(1)
             scores_j = scores[inds, j]
+            features_j = features[inds]
             boxes_j = boxes[inds, j * 4 : (j + 1) * 4]
             boxlist_for_class = BoxList(boxes_j, boxlist.size, mode="xyxy")
             boxlist_for_class.add_field("scores", scores_j)
+            boxlist_for_class.add_field("features", features_j)
             boxlist_for_class = boxlist_nms(
                 boxlist_for_class, self.nms
             )

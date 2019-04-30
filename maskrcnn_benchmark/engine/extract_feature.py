@@ -14,7 +14,6 @@ from ..utils.timer import Timer, get_time_str
 
 def compute_on_dataset(model, data_loader, device, timer=None):
     model.eval()
-    results_dict = {}
     cpu_device = torch.device("cpu")
     for batch in tqdm(data_loader):
         images, targets, image_ids = batch
@@ -22,39 +21,14 @@ def compute_on_dataset(model, data_loader, device, timer=None):
         with torch.no_grad():
             if timer:
                 timer.tic()
-            x, output = model.extract_object_representation(images)
+            _, output = model.extract_object_representation(images)
             if timer:
                 torch.cuda.synchronize()
                 timer.toc()
             output = [o.to(cpu_device) for o in output]
-            x = x.to(cpu_device)
-        results_dict.update(
-            {img_id: result for img_id, result in zip(image_ids, output)}
-        )
-    return results_dict
-
-
-def _accumulate_predictions_from_multiple_gpus(predictions_per_gpu):
-    all_predictions = all_gather(predictions_per_gpu)
-    if not is_main_process():
-        return
-    # merge the list of dicts
-    predictions = {}
-    for p in all_predictions:
-        predictions.update(p)
-    # convert a dict where the key is the index in a list
-    image_ids = list(sorted(predictions.keys()))
-    if len(image_ids) != image_ids[-1] + 1:
-        logger = logging.getLogger("maskrcnn_benchmark.inference")
-        logger.warning(
-            "Number of images that were gathered from multiple processes is not "
-            "a contiguous set. Some images might be missing from the evaluation"
-        )
-
-    # convert to a list
-    predictions = [predictions[i] for i in image_ids]
-    return predictions
-
+            for box in output:
+                print(box.get_field("features"))
+                
 
 def extract(
         model,
@@ -72,7 +46,7 @@ def extract(
     total_timer = Timer()
     inference_timer = Timer()
     total_timer.tic()
-    predictions = compute_on_dataset(model, data_loader, device, inference_timer)
+    compute_on_dataset(model, data_loader, device, inference_timer)
     # wait for all processes to complete before measuring the time
     synchronize()
     total_time = total_timer.toc()
@@ -90,9 +64,3 @@ def extract(
             num_devices,
         )
     )
-
-    predictions = _accumulate_predictions_from_multiple_gpus(predictions)
-    if not is_main_process():
-        return
-
-    # TODO
