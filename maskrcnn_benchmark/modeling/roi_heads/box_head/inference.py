@@ -80,10 +80,8 @@ class PostProcessor(nn.Module):
         proposals = proposals.split(boxes_per_image, dim=0)
         class_prob = class_prob.split(boxes_per_image, dim=0)
         features = features.split(boxes_per_image, dim=0)
-
         if attr_logits is not None:
             attr_word = attr_word.split(boxes_per_image, dim=0)
-
         results = []
         if attr_logits is not None:
             for attr_w, prob, boxes_per_img, image_shape, feature in zip(
@@ -137,7 +135,7 @@ class PostProcessor(nn.Module):
         features = boxlist.get_field("features").reshape(scores.size(0), -1)
 
         if boxlist.has_field('attr'):
-            attrs = boxlist.get_field("attr").reshape(scores.size(0), -1)
+            attrs = boxlist.get_field("attr")
         else:
             attrs = None
 
