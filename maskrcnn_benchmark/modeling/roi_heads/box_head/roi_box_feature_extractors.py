@@ -40,8 +40,8 @@ class ResNet50Conv5ROIFeatureExtractor(nn.Module):
         self.pooler = pooler
         self.head = head
         self.avgpool = nn.AdaptiveAvgPool2d(1)
-        self.out_channels = config.MODEL.ROI_BOX_HEAD.EMBEDDING_DIM if config.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT else head.out_channels
-
+        # self.out_channels = config.MODEL.ROI_BOX_HEAD.EMBEDDING_DIM if config.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT else head.out_channels
+        self.out_channels = head.out_channels
         # if config.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
         #     self.tanh = nn.Tanh()
         #     self.embedding_fc = nn.Linear(head.out_channels, config.MODEL.ROI_BOX_HEAD.EMBEDDING_DIM)
