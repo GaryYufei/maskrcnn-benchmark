@@ -50,7 +50,6 @@ class ResNet50Conv5ROIFeatureExtractor(nn.Module):
     def forward(self, x, proposals):
         x = self.pooler(x, proposals)
         x = self.head(x)
-        x = x.view(x.size(0), -1)
         # if self.config.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
         #     x = self.embedding_fc(x)
         #     x = self.tanh(x)
