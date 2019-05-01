@@ -9,7 +9,7 @@ MODEL:
   ROI_BOX_HEAD:
     NUM_CLASSES: 1601
     ATTR_NUM_CLASSES: 401
-    EMBEDDING_INIT: True
+    EMBEDDING_INIT: False
     EMBEDDING_WEIGHT: "datasets/vg/peter_ann/elmo_embedding.h5py"
     HEAD: "ROIBoxAttrHead"
     LOSS: "FastRCNNLossWithAttrComputation"
@@ -24,6 +24,6 @@ SOLVER:
   STEPS: (120000, 160000)
   MAX_ITER: 180000
   IMS_PER_BATCH: 8
-OUTPUT_DIR: "output"
+OUTPUT_DIR: "output_101_attr"
 TEST:
   IMS_PER_BATCH: 8
