@@ -87,9 +87,9 @@ def extract(
     if not is_main_process():
         return
 
-    with open(os.path.join(output_folder, "result.tsv"), 'ab') as tsvfile:
+    with open(os.path.join(output_folder, "result.tsv"), 'w') as tsvfile:
         writer = csv.DictWriter(tsvfile, delimiter = '\t', fieldnames = FIELDNAMES)  
-    for prediction in tqdm(predictions):
-        writer.writerow(prediction)
+        for prediction in tqdm(predictions):
+            writer.writerow(prediction)
 
 
