@@ -11,6 +11,7 @@ from ..utils.comm import is_main_process, get_world_size
 from ..utils.comm import all_gather
 from ..utils.comm import synchronize
 from ..utils.timer import Timer, get_time_str
+from .inference import _accumulate_predictions_from_multiple_gpus
 
 import base64
 
