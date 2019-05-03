@@ -36,7 +36,7 @@ def compute_on_dataset(model, data_loader, device, timer=None):
                 "image_id": img_id,
                 "num_boxes": int(t_result.num_boxes),
                 "image_h": int(t_result.image_height),
-                "image_w": int(t_result.image_width)
+                "image_w": int(t_result.image_width),
                 "labels": base64.b64encode(result.get_field("labels").numpy()),
                 "attrs": base64.b64encode(result.get_field("attrs").numpy()),
                 "bbox": base64.b64encode(result.bbox.numpy()),
