@@ -29,8 +29,8 @@ def compute_on_dataset(model, data_loader, device, timer=None):
                 torch.cuda.synchronize()
                 timer.toc()
             output = [o.to(cpu_device) for o in output]
-        for img_id, result in zip(image_ids, output):
-            print(result.bbox.numpy().shape)
+        for img_id, t_result, result in zip(image_ids, targets, output):
+            print(t_result)
             d = {
                 "image_id": img_id,
                 "labels": base64.b64encode(result.get_field("labels").numpy()),
