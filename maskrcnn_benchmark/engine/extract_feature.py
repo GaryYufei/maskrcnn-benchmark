@@ -2,6 +2,7 @@
 import logging
 import time
 import os
+import csv
 
 import torch
 from tqdm import tqdm
@@ -12,6 +13,8 @@ from ..utils.comm import synchronize
 from ..utils.timer import Timer, get_time_str
 
 import base64
+
+FIELDNAMES = ['image_id', 'image_h', 'image_w', 'num_boxes', 'labels', 'attrs', 'bbox', 'feature']
 
 
 def compute_on_dataset(model, data_loader, device, timer=None):
@@ -30,13 +33,11 @@ def compute_on_dataset(model, data_loader, device, timer=None):
                 timer.toc()
             output = [o.to(cpu_device) for o in output]
         for img_id, t_result, result in zip(image_ids, targets, output):
-            print(t_result)
-            print(result.get_field("labels").size(), result.get_field("attrs").size(), result.bbox.numpy().shape, result.get_field("attrs").size())
             d = {
                 "image_id": img_id,
-                "num_boxes": int(t_result.num_boxes),
-                "image_h": int(t_result.image_height),
-                "image_w": int(t_result.image_width),
+                "num_boxes": result.bbox.numpy().shape[0],
+                "image_h": int(t_result.size[1]),
+                "image_w": int(t_result.size[0]),
                 "labels": base64.b64encode(result.get_field("labels").numpy()),
                 "attrs": base64.b64encode(result.get_field("attrs").numpy()),
                 "bbox": base64.b64encode(result.bbox.numpy()),
@@ -84,5 +85,10 @@ def extract(
     predictions = _accumulate_predictions_from_multiple_gpus(predictions)
     if not is_main_process():
         return
+
+    with open(os.path.join(output_folder, "result.tsv"), 'ab') as tsvfile:
+        writer = csv.DictWriter(tsvfile, delimiter = '\t', fieldnames = FIELDNAMES)  
+    for pred in tqdm(predictions):
+        writer.writerow(pred)
 
 
