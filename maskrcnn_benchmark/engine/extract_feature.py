@@ -11,9 +11,12 @@ from ..utils.comm import all_gather
 from ..utils.comm import synchronize
 from ..utils.timer import Timer, get_time_str
 
+import base64
+
 
 def compute_on_dataset(model, data_loader, device, timer=None):
     model.eval()
+    results_dict = {}
     cpu_device = torch.device("cpu")
     for batch in tqdm(data_loader):
         images, targets, image_ids = batch
@@ -26,8 +29,17 @@ def compute_on_dataset(model, data_loader, device, timer=None):
                 torch.cuda.synchronize()
                 timer.toc()
             output = [o.to(cpu_device) for o in output]
-            for box in output:
-                print(image_ids, box.get_field("features").size(), box.get_field("labels").size(), box.get_field("attrs").size())
+        for img_id, result in zip(image_ids, output):
+            print(result.bbox.numpy().shape)
+            d = {
+                "image_id": img_id,
+                "labels": base64.b64encode(result.get_field("labels").numpy()),
+                "attrs": base64.b64encode(result.get_field("attrs").numpy()),
+                "bbox": base64.b64encode(result.bbox.numpy()),
+                "feature": base64.b64encode(result.get_field("attrs").numpy())
+            }
+            results_dict.update(d)
+    return results_dict
                 
 
 def extract(
@@ -46,7 +58,7 @@ def extract(
     total_timer = Timer()
     inference_timer = Timer()
     total_timer.tic()
-    compute_on_dataset(model, data_loader, device, inference_timer)
+    predictions = compute_on_dataset(model, data_loader, device, inference_timer)
     # wait for all processes to complete before measuring the time
     synchronize()
     total_time = total_timer.toc()
@@ -64,3 +76,9 @@ def extract(
             num_devices,
         )
     )
+
+    predictions = _accumulate_predictions_from_multiple_gpus(predictions)
+    if not is_main_process():
+        return
+
+
