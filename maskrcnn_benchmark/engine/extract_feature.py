@@ -27,7 +27,7 @@ def compute_on_dataset(model, data_loader, device, timer=None):
                 timer.toc()
             output = [o.to(cpu_device) for o in output]
             for box in output:
-                print(box.get_field("features").size(), box.get_field("labels").size(), box.get_field("attrs").size())
+                print(image_ids.size(), box.get_field("features").size(), box.get_field("labels").size(), box.get_field("attrs").size())
                 
 
 def extract(
