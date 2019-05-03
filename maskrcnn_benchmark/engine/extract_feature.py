@@ -44,7 +44,7 @@ def compute_on_dataset(model, data_loader, device, timer=None):
                 "bbox": base64.b64encode(result.bbox.numpy()),
                 "feature": base64.b64encode(result.get_field("attrs").numpy())
             }
-            results_dict.update(d)
+            results_dict.update({img_id: d})
     return results_dict
                 
 
@@ -89,7 +89,7 @@ def extract(
 
     with open(os.path.join(output_folder, "result.tsv"), 'ab') as tsvfile:
         writer = csv.DictWriter(tsvfile, delimiter = '\t', fieldnames = FIELDNAMES)  
-    for pred in tqdm(predictions):
-        writer.writerow(pred)
+    for image_ID in tqdm(predictions):
+        writer.writerow(predictions[image_ID])
 
 
