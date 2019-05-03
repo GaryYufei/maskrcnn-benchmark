@@ -90,6 +90,7 @@ def extract(
     with open(os.path.join(output_folder, "result.tsv"), 'ab') as tsvfile:
         writer = csv.DictWriter(tsvfile, delimiter = '\t', fieldnames = FIELDNAMES)  
     for image_ID in tqdm(predictions):
+        print(predictions[image_ID])
         writer.writerow(predictions[image_ID])
 
 
