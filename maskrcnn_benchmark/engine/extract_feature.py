@@ -42,7 +42,7 @@ def compute_on_dataset(model, data_loader, device, timer=None):
                 "labels": base64.b64encode(result.get_field("labels").numpy()),
                 "attrs": base64.b64encode(result.get_field("attrs").numpy()),
                 "bbox": base64.b64encode(result.bbox.numpy()),
-                "feature": base64.b64encode(result.get_field("attrs").numpy())
+                "feature": base64.b64encode(result.get_field("features").numpy())
             }
             results_dict.update({img_id: d})
     return results_dict
