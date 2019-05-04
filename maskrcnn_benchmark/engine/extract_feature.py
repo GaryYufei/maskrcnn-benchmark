@@ -86,9 +86,12 @@ def extract(
     with codecs.open(os.path.join(output_folder, "result.tsv"), 'w', encoding = 'utf8') as tsvfile:
         writer = csv.DictWriter(tsvfile, delimiter = '\t', fieldnames = FIELDNAMES)  
         for i in range(num_devices):
-            with open(os.path.join(output_folder, "result_%d.tsv" % i)) as tsv_in_file:
+            csv_path = os.path.join(output_folder, "result_%d.tsv" % i)
+            with open(csv_path) as tsv_in_file:
                 reader = csv.DictReader(tsv_in_file, delimiter='\t', fieldnames = FIELDNAMES)
                 for item in reader:
                     writer.writerow(item)
+            os.remove(csv_path)
+
 
 
