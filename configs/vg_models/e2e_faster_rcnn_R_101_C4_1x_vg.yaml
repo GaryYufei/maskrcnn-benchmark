@@ -16,7 +16,7 @@ MODEL:
     PREDICTOR: "FastRCNNAttrPredictor"
 DATASETS:
   TRAIN: ("vg_train",)
-  TEST: ("vg_dev",)
+  TEST: ("coco_2017_val",)
 SOLVER:
   CHECKPOINT_PERIOD: 5000
   BASE_LR: 0.01
