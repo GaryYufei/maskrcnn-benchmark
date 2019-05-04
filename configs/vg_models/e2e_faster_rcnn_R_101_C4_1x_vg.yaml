@@ -3,13 +3,14 @@ MODEL:
   WEIGHT: "catalog://ImageNetPretrained/MSRA/R-101"
   BACKBONE:
     CONV_BODY: "R-101-C4"
+  ROI_HEADS:
+    SCORE_THRESH: 0.2
   RPN:
     PRE_NMS_TOP_N_TEST: 6000
     POST_NMS_TOP_N_TEST: 1000
   ROI_BOX_HEAD:
     NUM_CLASSES: 1601
     ATTR_NUM_CLASSES: 401
-    SCORE_THRESH: 0.2
     EMBEDDING_INIT: False
     EMBEDDING_WEIGHT: "datasets/vg/peter_ann/elmo_embedding.h5py"
     HEAD: "ROIBoxAttrHead"
