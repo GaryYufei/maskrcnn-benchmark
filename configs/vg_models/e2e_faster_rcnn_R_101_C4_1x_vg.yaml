@@ -3,8 +3,6 @@ MODEL:
   WEIGHT: "catalog://ImageNetPretrained/MSRA/R-101"
   BACKBONE:
     CONV_BODY: "R-101-C4"
-  ROI_HEADS:
-    SCORE_THRESH: 0.2
   RPN:
     PRE_NMS_TOP_N_TEST: 6000
     POST_NMS_TOP_N_TEST: 1000
