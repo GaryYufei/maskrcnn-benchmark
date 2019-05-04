@@ -17,7 +17,7 @@ import base64
 FIELDNAMES = ['image_id', 'image_h', 'image_w', 'num_boxes', 'labels', 'attrs', 'bbox', 'feature']
 
 
-def compute_on_dataset(model, data_loader, device, timer=None):
+def compute_on_dataset(output_folder, model, data_loader, device, timer=None):
     model.eval()
     cpu_device = torch.device("cpu")
     with codecs.open(os.path.join(output_folder, "result_%d.tsv" % get_rank()), 'w', encoding = 'utf8') as tsvfile:
@@ -61,7 +61,7 @@ def extract(
     total_timer = Timer()
     inference_timer = Timer()
     total_timer.tic()
-    compute_on_dataset(model, data_loader, device, inference_timer)
+    compute_on_dataset(output_folder, model, data_loader, device, inference_timer)
     # wait for all processes to complete before measuring the time
     synchronize()
     total_time = total_timer.toc()
