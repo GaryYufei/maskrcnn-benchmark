@@ -7,11 +7,10 @@ import csv, codecs
 import torch
 from tqdm import tqdm
 
-from ..utils.comm import is_main_process, get_world_size
+from ..utils.comm import is_main_process, get_world_size, get_rank
 from ..utils.comm import all_gather
 from ..utils.comm import synchronize
 from ..utils.timer import Timer, get_time_str
-from .inference import _accumulate_predictions_from_multiple_gpus
 
 import base64
 
@@ -20,33 +19,31 @@ FIELDNAMES = ['image_id', 'image_h', 'image_w', 'num_boxes', 'labels', 'attrs', 
 
 def compute_on_dataset(model, data_loader, device, timer=None):
     model.eval()
-    results_dict = {}
     cpu_device = torch.device("cpu")
-    for batch in tqdm(data_loader):
-        images, targets, image_ids = batch
-        images = images.to(device)
-        with torch.no_grad():
-            if timer:
-                timer.tic()
-            _, output = model.extract_object_representation(images)
-            if timer:
-                torch.cuda.synchronize()
-                timer.toc()
-            output = [o.to(cpu_device) for o in output]
-        for img_id, t_result, result in zip(image_ids, targets, output):
-            d = {
-                "image_id": img_id,
-                "num_boxes": result.bbox.numpy().shape[0],
-                "image_h": int(t_result.size[1]),
-                "image_w": int(t_result.size[0]),
-                "labels": base64.b64encode(result.get_field("labels").numpy()),
-                "attrs": base64.b64encode(result.get_field("attrs").numpy()),
-                "bbox": base64.b64encode(result.bbox.numpy()),
-                "feature": base64.b64encode(result.get_field("features").numpy())
-            }
-            results_dict.update({img_id: d})
-    return results_dict
-                
+    with codecs.open(os.path.join(output_folder, "result_%d.tsv" % get_rank()), 'w', encoding = 'utf8') as tsvfile:
+        writer = csv.DictWriter(tsvfile, delimiter = '\t', fieldnames = FIELDNAMES)
+        for batch in tqdm(data_loader):
+            images, targets, image_ids = batch
+            images = images.to(device)
+            with torch.no_grad():
+                if timer:
+                    timer.tic()
+                _, output = model.extract_object_representation(images)
+                if timer:
+                    torch.cuda.synchronize()
+                    timer.toc()
+                output = [o.to(cpu_device) for o in output]
+            for img_id, t_result, result in zip(image_ids, targets, output):
+                writer.writerow({
+                    "image_id": img_id,
+                    "num_boxes": result.bbox.numpy().shape[0],
+                    "image_h": int(t_result.size[1]),
+                    "image_w": int(t_result.size[0]),
+                    "labels": base64.b64encode(result.get_field("labels").numpy()),
+                    "attrs": base64.b64encode(result.get_field("attrs").numpy()),
+                    "bbox": base64.b64encode(result.bbox.numpy()),
+                    "feature": base64.b64encode(result.get_field("features").numpy())
+                })   
 
 def extract(
         model,
@@ -64,7 +61,7 @@ def extract(
     total_timer = Timer()
     inference_timer = Timer()
     total_timer.tic()
-    predictions = compute_on_dataset(model, data_loader, device, inference_timer)
+    compute_on_dataset(model, data_loader, device, inference_timer)
     # wait for all processes to complete before measuring the time
     synchronize()
     total_time = total_timer.toc()
@@ -83,13 +80,15 @@ def extract(
         )
     )
 
-    predictions = _accumulate_predictions_from_multiple_gpus(predictions)
     if not is_main_process():
         return
 
     with codecs.open(os.path.join(output_folder, "result.tsv"), 'w', encoding = 'utf8') as tsvfile:
         writer = csv.DictWriter(tsvfile, delimiter = '\t', fieldnames = FIELDNAMES)  
-        for prediction in tqdm(predictions):
-            writer.writerow(prediction)
+        for i in range(num_devices):
+            with open(os.path.join(output_folder, "result_%d.tsv" % i)) as tsv_in_file:
+                reader = csv.DictReader(tsv_in_file, delimiter='\t', fieldnames = FIELDNAMES)
+                for item in reader:
+                    writer.writerow(item)
 
 
