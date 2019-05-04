@@ -24,7 +24,6 @@ class FastRCNNPredictor(nn.Module):
             nn.init.normal_(self.cls_score.weight, mean=0, std=0.01)
             nn.init.constant_(self.cls_score.bias, 0)
         else:
-            self.tanh = nn.Tanh()
             self.embedding_fc = nn.Linear(in_channels, cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_DIM)
             nn.init.normal_(self.embedding_fc.weight, mean=0, std=0.01)
             nn.init.constant_(self.embedding_fc.bias, 0)
@@ -38,7 +37,7 @@ class FastRCNNPredictor(nn.Module):
         bbox_pred = self.bbox_pred(x)
 
         if self.cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
-            cls_vec = self.tanh(self.embedding_fc(x))
+            cls_vec = self.embedding_fc(x)
         else:
             cls_vec = x
 
@@ -68,7 +67,7 @@ class FastRCNNAttrPredictor(FastRCNNPredictor):
         bbox_pred = self.bbox_pred(x)
 
         if self.cfg.MODEL.ROI_BOX_HEAD.EMBEDDING_INIT:
-            _vec = self.tanh(self.embedding_fc(x))
+            _vec = self.embedding_fc(x)
         else:
             _vec = x
 

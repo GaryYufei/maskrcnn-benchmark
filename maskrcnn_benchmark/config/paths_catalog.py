@@ -19,6 +19,18 @@ class DatasetCatalog(object):
             "class_file": "vg/peter_ann/class_labels.txt",
             "attr_file": "vg/peter_ann/attr_labels.txt"
         },
+        "vg_new_train": {
+            "img_dir": "vg/img",
+            "vg_ann": "vg/new_class_ann/train.json",
+            "class_file": "vg/new_class_ann/new_class_labels.txt",
+            "attr_file": "vg/new_class_ann/new_attr_labels.txt"
+        },
+        "vg_new_dev": {
+            "img_dir": "vg/img",
+            "vg_ann": "vg/new_class_ann/dev.json",
+            "class_file": "vg/new_class_ann/new_class_labels.txt",
+            "attr_file": "vg/new_class_ann/new_attr_labels.txt"
+        },
         "coco_2017_train": {
             "img_dir": "coco/image",
             "ann_file": "coco/instances_train2017.json"
