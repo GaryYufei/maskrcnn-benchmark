@@ -2,6 +2,7 @@
 import logging
 import time
 import os
+import sys
 import csv, codecs
 
 import torch
@@ -14,6 +15,7 @@ from ..utils.timer import Timer, get_time_str
 
 import base64
 
+csv.field_size_limit(sys.maxsize)
 FIELDNAMES = ['image_id', 'image_h', 'image_w', 'num_boxes', 'labels', 'attrs', 'bbox', 'feature']
 
 
