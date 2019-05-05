@@ -220,9 +220,9 @@ class ExactionPostProcessor(PostProcessor):
         max_conf = np.max(_conf, axis=1)
         max_cls = np.argmax(_conf, axis=1)
 
-        boxes = boxes.cpu()
-        scores = scores.cpu()
-        features = features.cpu()
+        boxes = boxes.cpu().numpy()
+        scores = scores.cpu().numpy()
+        features = features.cpu().numpy()
 
         MIN_BOXES = 10
 
