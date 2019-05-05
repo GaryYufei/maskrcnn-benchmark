@@ -65,7 +65,7 @@ class COCODataset(torchvision.datasets.coco.CocoDetection):
 
     def __getitem__(self, idx):
         img, anno = super(COCODataset, self).__getitem__(idx)
-
+        img_id = self.id_to_img_map[index]
         # filter crowd annotations
         # TODO might be better to add an extra field
         anno = [obj for obj in anno if obj["iscrowd"] == 0]
@@ -93,7 +93,7 @@ class COCODataset(torchvision.datasets.coco.CocoDetection):
         if self.transforms is not None:
             img, target = self.transforms(img, target)
 
-        return img, target, idx
+        return img, target, img_id
 
     def get_img_info(self, index):
         img_id = self.id_to_img_map[index]
