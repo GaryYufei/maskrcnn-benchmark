@@ -223,6 +223,8 @@ class ExactionPostProcessor(PostProcessor):
         boxes = boxes.cpu().numpy()
         scores = scores.cpu().numpy()
         features = features.cpu().numpy()
+        if attrs is not None:
+            attrs = attrs.cpu().numpy()
 
         MIN_BOXES = 10
 
