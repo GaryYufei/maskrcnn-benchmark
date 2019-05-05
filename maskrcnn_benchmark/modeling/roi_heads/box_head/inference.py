@@ -193,11 +193,11 @@ class ExactionPostProcessor(PostProcessor):
         # unwrap the boxlist to avoid additional overhead.
         # if we had multi-class NMS, we could perform this directly on the boxlist
         boxes = boxlist.bbox.reshape(-1, num_classes * 4)
-        scores = boxlist.get_field("scores").cpu().reshape(-1, num_classes)
-        features = boxlist.get_field("features").cpu().reshape(scores.size(0), -1)
+        scores = boxlist.get_field("scores").reshape(-1, num_classes)
+        features = boxlist.get_field("features").reshape(scores.size(0), -1)
 
         if boxlist.has_field('attr'):
-            attrs = boxlist.get_field("attr").cpu()
+            attrs = boxlist.get_field("attr")
         else:
             attrs = None
 
@@ -215,7 +215,7 @@ class ExactionPostProcessor(PostProcessor):
             keep = boxlist_nms_index(
                 boxlist_for_class, self.nms
             )
-            _conf[keep, j] = scores_j[keep]
+            _conf[keep, j] = scores_j[keep].cpu()
 
         max_conf = np.max(max_conf, axis=1)
         max_cls = np.argmax(max_conf, axis=1)
