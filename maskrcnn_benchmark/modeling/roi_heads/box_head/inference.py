@@ -215,7 +215,7 @@ class ExactionPostProcessor(PostProcessor):
             keep = boxlist_nms_index(
                 boxlist_for_class, self.nms
             )
-            _conf[keep, j] = scores_j[keep].cpu()
+            _conf[keep.cpu(), j] = scores_j[keep].cpu()
 
         max_conf = np.max(max_conf, axis=1)
         max_cls = np.argmax(max_conf, axis=1)
