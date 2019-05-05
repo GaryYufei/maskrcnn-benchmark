@@ -237,6 +237,7 @@ class ExactionPostProcessor(PostProcessor):
         selected_boxes = boxes[keep_boxes]
         for i in range(keep_labels.shape[0]):
             l = keep_labels[i]
+            print(l)
             keep_boxes[i] = selected_boxes[i, l * 4 : (l + 1) * 4]
         final_boxlist = BoxList(keep_boxes, boxlist.size, mode="xyxy")
         final_boxlist.add_field("features", features[keep_boxes])
