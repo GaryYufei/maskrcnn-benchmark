@@ -2,13 +2,16 @@
 import torch
 import torch.nn.functional as F
 from torch import nn
+import numpy as np
+
+from maskrcnn_benchmark.modeling import registry
 
 from maskrcnn_benchmark.structures.bounding_box import BoxList
-from maskrcnn_benchmark.structures.boxlist_ops import boxlist_nms
+from maskrcnn_benchmark.structures.boxlist_ops import boxlist_nms, boxlist_nms_index
 from maskrcnn_benchmark.structures.boxlist_ops import cat_boxlist
 from maskrcnn_benchmark.modeling.box_coder import BoxCoder
 
-
+@registry.ROI_BOX_POSTPROCESS.register("PostProcessor")
 class PostProcessor(nn.Module):
     """
     From a set of classification scores, box regression and proposals,
@@ -150,6 +153,7 @@ class PostProcessor(nn.Module):
             boxlist_for_class = BoxList(boxes_j, boxlist.size, mode="xyxy")
             scores_j = scores[inds, j]
             features_j = features[inds]
+
             boxlist_for_class.add_field("scores", scores_j)
             boxlist_for_class.add_field("features", features_j)
             if attrs is not None:
@@ -179,6 +183,62 @@ class PostProcessor(nn.Module):
             result = result[keep]
         return result
 
+@registry.ROI_BOX_POSTPROCESS.register("ExactionPostProcessor")
+class ExactionPostProcessor(PostProcessor):
+
+    def filter_results(self, boxlist, num_classes):
+        """Returns bounding-box detection results by thresholding on scores and
+        applying non-maximum suppression (NMS).
+        """
+        # unwrap the boxlist to avoid additional overhead.
+        # if we had multi-class NMS, we could perform this directly on the boxlist
+        boxes = boxlist.bbox.reshape(-1, num_classes * 4)
+        scores = boxlist.get_field("scores").reshape(-1, num_classes)
+        features = boxlist.get_field("features").reshape(scores.size(0), -1)
+
+        if boxlist.has_field('attr'):
+            attrs = boxlist.get_field("attr")
+        else:
+            attrs = None
+
+        device = scores.device
+        result = []
+
+        # Apply threshold on detection probabilities and apply NMS
+        # Skip j = 0, because it's the background class
+        _conf = np.zeros((boxes.shape[0], num_classes))
+        for j in range(1, num_classes):
+            boxes_j = boxes[:, j * 4 : (j + 1) * 4]
+            scores_j = scores[:, j]
+            boxlist_for_class = BoxList(boxes_j, boxlist.size, mode="xyxy")
+            boxlist_for_class.add_field("scores", scores_j)
+            keep = boxlist_nms_index(
+                boxlist_for_class, self.nms
+            )
+            _conf[keep, j] = scores_j[keep]
+
+        max_conf = np.max(max_conf, axis=1)
+        max_cls = np.argmax(max_conf, axis=1)
+
+        keep_boxes = np.where(max_conf >= self.score_thresh)[0]
+        if len(keep_boxes) < 10:
+            keep_boxes = np.argsort(max_conf)[::-1][:MIN_BOXES]
+        elif len(keep_boxes) > self.detections_per_img:
+            keep_boxes = np.argsort(max_conf)[::-1][:MAX_BOXES]
+
+        keep_boxes = np.zeros((keep_labels.shape[0], 4), dtype=np.float32)
+        selected_boxes = boxes[keep_boxes]
+        for i in range(keep_labels.shape[0]):
+            l = keep_labels[i]
+            keep_boxes[i] = selected_boxes[i, l * 4 : (l + 1) * 4]
+        final_boxlist = BoxList(keep_boxes, boxlist.size, mode="xyxy")
+        final_boxlist.add_field("features", features[keep_boxes])
+        final_boxlist.add_field("labels", max_cls[keep_boxes])
+        if attrs is not None:
+            final_boxlist.add_field("attrs", attrs[keep_boxes])
+
+        return final_boxlist
+
 
 def make_roi_box_post_processor(cfg):
     use_fpn = cfg.MODEL.ROI_HEADS.USE_FPN
@@ -191,7 +251,11 @@ def make_roi_box_post_processor(cfg):
     detections_per_img = cfg.MODEL.ROI_HEADS.DETECTIONS_PER_IMG
     cls_agnostic_bbox_reg = cfg.MODEL.CLS_AGNOSTIC_BBOX_REG
 
-    postprocessor = PostProcessor(
+    func = registry.ROI_BOX_POSTPROCESS[
+        cfg.MODEL.ROI_HEADS.POSTPROCESS_TYPE
+    ]
+
+    postprocessor = func(
         score_thresh,
         nms_thresh,
         detections_per_img,
