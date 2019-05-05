@@ -41,10 +41,10 @@ def compute_on_dataset(output_folder, model, data_loader, device, timer=None):
                     "num_boxes": result.bbox.numpy().shape[0],
                     "image_h": int(t_result.size[1]),
                     "image_w": int(t_result.size[0]),
-                    "labels": base64.b64encode(result.get_field("labels").numpy()).decode('utf-8'),
-                    "attrs": base64.b64encode(result.get_field("attrs").numpy()).decode('utf-8'),
-                    "bbox": base64.b64encode(result.bbox.numpy()).decode('utf-8'),
-                    "feature": base64.b64encode(result.get_field("features").numpy()).decode('utf-8')
+                    "labels": base64.b64encode(result.get_field("labels")).decode('utf-8'),
+                    "attrs": base64.b64encode(result.get_field("attrs")).decode('utf-8'),
+                    "bbox": base64.b64encode(result.bbox).decode('utf-8'),
+                    "feature": base64.b64encode(result.get_field("features")).decode('utf-8')
                 })   
 
 def extract(
