@@ -220,12 +220,17 @@ class ExactionPostProcessor(PostProcessor):
         max_conf = np.max(max_conf, axis=1)
         max_cls = np.argmax(max_conf, axis=1)
 
+        boxes = boxes.cpu()
+        scores = scores.cpu()
+        features = features.cpu()
+
         keep_boxes = np.where(max_conf >= self.score_thresh)[0]
         if len(keep_boxes) < 10:
             keep_boxes = np.argsort(max_conf)[::-1][:MIN_BOXES]
         elif len(keep_boxes) > self.detections_per_img:
             keep_boxes = np.argsort(max_conf)[::-1][:MAX_BOXES]
 
+        keep_labels = max_cls[keep_boxes]
         keep_boxes = np.zeros((keep_labels.shape[0], 4), dtype=np.float32)
         selected_boxes = boxes[keep_boxes]
         for i in range(keep_labels.shape[0]):
@@ -233,7 +238,7 @@ class ExactionPostProcessor(PostProcessor):
             keep_boxes[i] = selected_boxes[i, l * 4 : (l + 1) * 4]
         final_boxlist = BoxList(keep_boxes, boxlist.size, mode="xyxy")
         final_boxlist.add_field("features", features[keep_boxes])
-        final_boxlist.add_field("labels", max_cls[keep_boxes])
+        final_boxlist.add_field("labels", keep_labels)
         if attrs is not None:
             final_boxlist.add_field("attrs", attrs[keep_boxes])
 
