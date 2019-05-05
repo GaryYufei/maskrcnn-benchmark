@@ -193,11 +193,11 @@ class ExactionPostProcessor(PostProcessor):
         # unwrap the boxlist to avoid additional overhead.
         # if we had multi-class NMS, we could perform this directly on the boxlist
         boxes = boxlist.bbox.reshape(-1, num_classes * 4)
-        scores = boxlist.get_field("scores").reshape(-1, num_classes)
-        features = boxlist.get_field("features").reshape(scores.size(0), -1)
+        scores = boxlist.get_field("scores").cpu().numpy().reshape(-1, num_classes)
+        features = boxlist.get_field("features").cpu().numpy().reshape(scores.size(0), -1)
 
         if boxlist.has_field('attr'):
-            attrs = boxlist.get_field("attr")
+            attrs = boxlist.get_field("attr").cpu().numpy()
         else:
             attrs = None
 
