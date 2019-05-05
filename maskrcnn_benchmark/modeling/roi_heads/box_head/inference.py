@@ -224,11 +224,13 @@ class ExactionPostProcessor(PostProcessor):
         scores = scores.cpu()
         features = features.cpu()
 
+        MIN_BOXES = 10
+
         keep_boxes = np.where(max_conf >= self.score_thresh)[0]
-        if len(keep_boxes) < 10:
+        if len(keep_boxes) < MIN_BOXES:
             keep_boxes = np.argsort(max_conf)[::-1][:MIN_BOXES]
         elif len(keep_boxes) > self.detections_per_img:
-            keep_boxes = np.argsort(max_conf)[::-1][:MAX_BOXES]
+            keep_boxes = np.argsort(max_conf)[::-1][:self.detections_per_img]
 
         keep_labels = max_cls[keep_boxes]
         keep_boxes = np.zeros((keep_labels.shape[0], 4), dtype=np.float32)
