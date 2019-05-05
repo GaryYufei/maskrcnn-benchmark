@@ -217,8 +217,8 @@ class ExactionPostProcessor(PostProcessor):
             )
             _conf[keep.cpu(), j] = scores_j[keep].cpu()
 
-        max_conf = np.max(max_conf, axis=1)
-        max_cls = np.argmax(max_conf, axis=1)
+        max_conf = np.max(_conf, axis=1)
+        max_cls = np.argmax(_conf, axis=1)
 
         boxes = boxes.cpu()
         scores = scores.cpu()
