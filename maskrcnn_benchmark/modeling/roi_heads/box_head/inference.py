@@ -233,7 +233,7 @@ class ExactionPostProcessor(PostProcessor):
             keep_boxes = np.argsort(max_conf)[::-1][:self.detections_per_img]
 
         keep_labels = max_cls[keep_boxes]
-        keep_boxes = np.zeros((keep_labels.shape[0], 4), dtype=np.float32)
+        saved_boxes = np.zeros((keep_labels.shape[0], 4), dtype=np.float32)
         selected_boxes = boxes[keep_boxes]
         for i in range(keep_labels.shape[0]):
             l = keep_labels[i]
