@@ -26,6 +26,7 @@ def compute_on_dataset(output_folder, model, data_loader, device, timer=None):
         writer = csv.DictWriter(tsvfile, delimiter = '\t', fieldnames = FIELDNAMES)
         for batch in tqdm(data_loader):
             images, targets, image_ids = batch
+            print(image_ids)
             images = images.to(device)
             with torch.no_grad():
                 if timer:
