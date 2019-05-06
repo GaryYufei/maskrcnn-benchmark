@@ -46,7 +46,7 @@ class VGDataset(object):
         if self.transforms is not None:
             image, boxlist = self.transforms(image, boxlist)
         # return the image, the boxlist and the idx in your dataset
-        return image, boxlist, idx
+        return image, boxlist, image_info['image_id'] if 'image_id' in image_info else idx
 
     def get_groundtruth(self, idx):
         image_info = self.img_obj_list[idx]
