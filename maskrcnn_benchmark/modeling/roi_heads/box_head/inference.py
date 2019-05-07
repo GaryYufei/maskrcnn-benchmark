@@ -226,7 +226,7 @@ class ExactionPostProcessor(PostProcessor):
         if attrs is not None:
             attrs = attrs.cpu().numpy()
 
-        MIN_BOXES = 10
+        MIN_BOXES = 20
 
         keep_boxes = np.where(max_conf >= self.score_thresh)[0]
         if len(keep_boxes) < MIN_BOXES:
