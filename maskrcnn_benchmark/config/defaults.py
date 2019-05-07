@@ -205,7 +205,9 @@ _C.MODEL.ROI_HEADS.POSTPROCESS_TYPE = "PostProcessor"
 _C.MODEL.ROI_HEADS.NMS = 0.5
 # Maximum number of detections to return per image (100 is based on the limit
 # established for the COCO dataset)
-_C.MODEL.ROI_HEADS.DETECTIONS_PER_IMG = 100
+_C.MODEL.ROI_HEADS.MAX_DETECTIONS_PER_IMG = 100
+# This is only used when extract up-down feature
+_C.MODEL.ROI_HEADS.MIN_DETECTIONS_PER_IMG = 10
 
 
 _C.MODEL.ROI_BOX_HEAD = CN()

@@ -23,7 +23,8 @@ class PostProcessor(nn.Module):
         self,
         score_thresh=0.05,
         nms=0.5,
-        detections_per_img=100,
+        max_detections_per_img=100,
+        min_detections_per_img=10,
         box_coder=None,
         cls_agnostic_bbox_reg=False
     ):
@@ -37,7 +38,8 @@ class PostProcessor(nn.Module):
         super(PostProcessor, self).__init__()
         self.score_thresh = score_thresh
         self.nms = nms
-        self.detections_per_img = detections_per_img
+        self.max_detections_per_img = max_detections_per_img
+        self.min_detections_per_img = min_detections_per_img
         if box_coder is None:
             box_coder = BoxCoder(weights=(10., 10., 5., 5.))
         self.box_coder = box_coder
@@ -173,10 +175,10 @@ class PostProcessor(nn.Module):
         number_of_detections = len(result)
 
         # Limit to max_per_image detections **over all classes**
-        if number_of_detections > self.detections_per_img > 0:
+        if number_of_detections > self.max_detections_per_img > 0:
             cls_scores = result.get_field("scores")
             image_thresh, _ = torch.kthvalue(
-                cls_scores.cpu(), number_of_detections - self.detections_per_img + 1
+                cls_scores.cpu(), number_of_detections - self.max_detections_per_img + 1
             )
             keep = cls_scores >= image_thresh.item()
             keep = torch.nonzero(keep).squeeze(1)
@@ -226,13 +228,11 @@ class ExactionPostProcessor(PostProcessor):
         if attrs is not None:
             attrs = attrs.cpu().numpy()
 
-        MIN_BOXES = 20
-
         keep_boxes = np.where(max_conf >= self.score_thresh)[0]
-        if len(keep_boxes) < MIN_BOXES:
-            keep_boxes = np.argsort(max_conf)[::-1][:MIN_BOXES]
-        elif len(keep_boxes) > self.detections_per_img:
-            keep_boxes = np.argsort(max_conf)[::-1][:self.detections_per_img]
+        if len(keep_boxes) < self.min_detections_per_img:
+            keep_boxes = np.argsort(max_conf)[::-1][:self.min_detections_per_img]
+        elif len(keep_boxes) > self.max_detections_per_img:
+            keep_boxes = np.argsort(max_conf)[::-1][:self.max_detections_per_img]
 
         keep_labels = max_cls[keep_boxes]
         saved_boxes = np.zeros((keep_labels.shape[0], 4), dtype=np.float32)
@@ -257,7 +257,8 @@ def make_roi_box_post_processor(cfg):
 
     score_thresh = cfg.MODEL.ROI_HEADS.SCORE_THRESH
     nms_thresh = cfg.MODEL.ROI_HEADS.NMS
-    detections_per_img = cfg.MODEL.ROI_HEADS.DETECTIONS_PER_IMG
+    max_detections_per_img = cfg.MODEL.ROI_HEADS.MAX_DETECTIONS_PER_IMG
+    min_detections_per_img = cfg.MODEL.ROI_HEADS.MIN_DETECTIONS_PER_IMG
     cls_agnostic_bbox_reg = cfg.MODEL.CLS_AGNOSTIC_BBOX_REG
 
     func = registry.ROI_BOX_POSTPROCESS[
@@ -267,7 +268,8 @@ def make_roi_box_post_processor(cfg):
     postprocessor = func(
         score_thresh,
         nms_thresh,
-        detections_per_img,
+        max_detections_per_img,
+        min_detections_per_img,
         box_coder,
         cls_agnostic_bbox_reg
     )
