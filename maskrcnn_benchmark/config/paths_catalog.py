@@ -32,11 +32,11 @@ class DatasetCatalog(object):
             "attr_file": "vg/new_class_ann/new_attr_labels.txt"
         },
         "nocaps_dev_raw_image": {
-            "img_dir": "nocaps/img",
+            "img_dir": "nocaps/image",
             "image_info_path": "nocaps/nocaps_dev.json"
         },
         "nocaps_test_raw_image": {
-            "img_dir": "nocaps/img",
+            "img_dir": "nocaps/image",
             "image_info_path": "nocaps/nocaps_test.json"
         },
         "coco_2017_train": {

@@ -25,6 +25,6 @@ class RawImageDataset(object):
         image_path = os.path.join(self.img_dir, image_info['file_name'])
         image = Image.open(image_path).convert("RGB")
 
-        boxlist = BoxList([], (image_info['width'], image_info['height']), mode="xyxy")
+        boxlist = BoxList([[0, 0, image_info['width'] / 2, image_info['height'] / 2] for _ in range(10)], (image_info['width'], image_info['height']), mode="xyxy")
 
         return image, boxlist, image_info['id']
