@@ -31,6 +31,14 @@ class DatasetCatalog(object):
             "class_file": "vg/new_class_ann/new_class_labels.txt",
             "attr_file": "vg/new_class_ann/new_attr_labels.txt"
         },
+        "nocaps_dev_raw_image": {
+            "img_dir": "nocaps/img",
+            "image_info_path": "nocaps/nocaps_dev.json"
+        },
+        "nocaps_test_raw_image": {
+            "img_dir": "nocaps/img",
+            "image_info_path": "nocaps/nocaps_test.json"
+        },
         "coco_2017_train": {
             "img_dir": "coco/image",
             "ann_file": "coco/instances_train2017.json"
@@ -165,6 +173,15 @@ class DatasetCatalog(object):
             )
             return dict(
                 factory="VGDataset",
+                args=args,
+            )
+        elif "raw_image" in name:
+            args = dict(
+                img_dir=os.path.join(data_dir, attrs["img_dir"]),
+                image_info_path=os.path.join(data_dir, attrs["image_info_path"])
+            )
+            return dict(
+                factory="RawImageDataset",
                 args=args,
             )
 
