@@ -33,11 +33,11 @@ class DatasetCatalog(object):
         },
         "nocaps_dev_raw_image": {
             "img_dir": "nocaps/image",
-            "image_info_path": "nocaps/nocaps_dev.json"
+            "image_info_path": "nocaps/nocaps_val_image_info.json"
         },
         "nocaps_test_raw_image": {
             "img_dir": "nocaps/image",
-            "image_info_path": "nocaps/nocaps_test.json"
+            "image_info_path": "nocaps/nocaps_test_image_info.json"
         },
         "coco_2017_train": {
             "img_dir": "coco/image",
@@ -176,6 +176,8 @@ class DatasetCatalog(object):
                 args=args,
             )
         elif "raw_image" in name:
+            data_dir = DatasetCatalog.DATA_DIR
+            attrs = DatasetCatalog.DATASETS[name]
             args = dict(
                 img_dir=os.path.join(data_dir, attrs["img_dir"]),
                 image_info_path=os.path.join(data_dir, attrs["image_info_path"])
