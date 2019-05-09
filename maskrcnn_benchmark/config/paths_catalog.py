@@ -31,6 +31,24 @@ class DatasetCatalog(object):
             "class_file": "vg/new_class_ann/new_class_labels.txt",
             "attr_file": "vg/new_class_ann/new_attr_labels.txt"
         },
+        "vg_new_train_peter_setup": {
+            "img_dir": "vg/img",
+            "vg_ann": "vg/new_class_peter_split/train.json",
+            "class_file": "vg/new_class_ann/new_class_labels.txt",
+            "attr_file": "vg/new_class_ann/new_attr_labels.txt"
+        },
+        "vg_new_dev_peter_setup": {
+            "img_dir": "vg/img",
+            "vg_ann": "vg/new_class_peter_split/dev.json",
+            "class_file": "vg/new_class_ann/new_class_labels.txt",
+            "attr_file": "vg/new_class_ann/new_attr_labels.txt"
+        },
+        "vg_new_test_peter_setup": {
+            "img_dir": "vg/img",
+            "vg_ann": "vg/new_class_peter_split/test.json",
+            "class_file": "vg/new_class_ann/new_class_labels.txt",
+            "attr_file": "vg/new_class_ann/new_attr_labels.txt"
+        },
         "nocaps_dev_raw_image": {
             "img_dir": "nocaps/image",
             "image_info_path": "nocaps/nocaps_val_image_info.json"
