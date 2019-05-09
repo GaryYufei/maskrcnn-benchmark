@@ -6,7 +6,7 @@ class VGDataset(object):
     def __init__(self, img_dir, vg_ann, class_file, attr_file, transforms=None):
         self.img_dir = img_dir
 
-        self.cls_dict = {"backward": 0}
+        self.cls_dict = {"__background__": 0}
         self.cls_list = [None]
         with open(class_file) as cls_file:
             for line in cls_file:
@@ -16,7 +16,7 @@ class VGDataset(object):
                 self.cls_list.append(line)
                 self.cls_dict[line] = len(self.cls_dict)
 
-        self.attr_dict = {"*empty*": 0}
+        self.attr_dict = {"__no_attribute__": 0}
         with open(attr_file) as attrs_file:
             for line in attrs_file:
                 line = line.strip()
@@ -46,7 +46,7 @@ class VGDataset(object):
         if self.transforms is not None:
             image, boxlist = self.transforms(image, boxlist)
         # return the image, the boxlist and the idx in your dataset
-        return image, boxlist, image_info['image_id'] if 'image_id' in image_info else idx
+        return image, boxlist, idx
 
     def get_groundtruth(self, idx):
         image_info = self.img_obj_list[idx]
