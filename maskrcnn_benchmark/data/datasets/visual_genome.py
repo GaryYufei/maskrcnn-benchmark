@@ -16,7 +16,7 @@ class VGDataset(object):
                 self.cls_list.append(line)
                 self.cls_dict[line] = len(self.cls_dict)
 
-        self.attr_dict = {"__no_attribute__": 0}
+        self.attr_dict = {"*empty*": 0}
         with open(attr_file) as attrs_file:
             for line in attrs_file:
                 line = line.strip()
